@@ -1,12 +1,11 @@
 import { css } from '@emotion/css';
-import { PureComponent } from 'react';
-import * as React from 'react';
+import { FormEvent, useCallback, useState } from 'react';
 import { connect, MapStateToProps } from 'react-redux';
 
 import { AnnotationQuery, DataQuery, TypedVariableModel, GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
 import { DashboardLink } from '@grafana/schema';
-import { stylesFactory, Themeable2, withTheme2 } from '@grafana/ui';
+import { useStyles2 } from '@grafana/ui';
 import { StoreState } from 'app/types/store';
 
 import { getSubMenuVariables, getVariablesState } from '../../../variables/state/selectors';
@@ -16,7 +15,7 @@ import { Annotations } from './Annotations';
 import { DashboardLinks } from './DashboardLinks';
 import { SubMenuItems } from './SubMenuItems';
 
-interface OwnProps extends Themeable2 {
+interface OwnProps {
   dashboard: DashboardModel;
   links: DashboardLink[];
   annotations: AnnotationQuery[];
@@ -26,54 +25,52 @@ interface ConnectedProps {
   variables: TypedVariableModel[];
 }
 
-interface DispatchProps {}
+type Props = OwnProps & ConnectedProps;
 
-type Props = OwnProps & ConnectedProps & DispatchProps;
+function SubMenuUnConnected({ dashboard, variables, links, annotations }: Props) {
+  const [, forceUpdate] = useState({});
+  const styles = useStyles2(getStyles);
 
-class SubMenuUnConnected extends PureComponent<Props> {
-  onAnnotationStateChanged = (updatedAnnotation: AnnotationQuery<DataQuery>) => {
-    // we're mutating dashboard state directly here until annotations are in Redux.
-    for (let index = 0; index < this.props.dashboard.annotations.list.length; index++) {
-      const annotation = this.props.dashboard.annotations.list[index];
-      if (annotation.name === updatedAnnotation.name) {
-        annotation.enable = !annotation.enable;
-        break;
+  const onAnnotationStateChanged = useCallback(
+    (updatedAnnotation: AnnotationQuery<DataQuery>) => {
+      // we're mutating dashboard state directly here until annotations are in Redux.
+      for (let index = 0; index < dashboard.annotations.list.length; index++) {
+        const annotation = dashboard.annotations.list[index];
+        if (annotation.name === updatedAnnotation.name) {
+          annotation.enable = !annotation.enable;
+          break;
+        }
       }
-    }
-    this.props.dashboard.startRefresh();
-    this.forceUpdate();
-  };
+      dashboard.startRefresh();
+      forceUpdate({});
+    },
+    [dashboard]
+  );
 
-  disableSubmitOnEnter = (e: React.FormEvent<HTMLFormElement>) => {
+  const disableSubmitOnEnter = useCallback((e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  };
+  }, []);
 
-  render() {
-    const { dashboard, variables, links, annotations, theme } = this.props;
+  const readOnlyVariables = dashboard.meta.isSnapshot ?? false;
 
-    const styles = getStyles(theme);
-
-    const readOnlyVariables = dashboard.meta.isSnapshot ?? false;
-
-    return (
-      <div className={styles.submenu}>
-        <form
-          aria-label={t('dashboard.sub-menu-un-connected.aria-label-template-variables', 'Template variables')}
-          className={styles.formStyles}
-          onSubmit={this.disableSubmitOnEnter}
-        >
-          <SubMenuItems variables={variables} readOnly={readOnlyVariables} />
-        </form>
-        <Annotations
-          annotations={annotations}
-          onAnnotationChanged={this.onAnnotationStateChanged}
-          events={dashboard.events}
-        />
-        <div className={styles.spacer} />
-        {dashboard && <DashboardLinks dashboard={dashboard} links={links} />}
-      </div>
-    );
-  }
+  return (
+    <div className={styles.submenu}>
+      <form
+        aria-label={t('dashboard.sub-menu-un-connected.aria-label-template-variables', 'Template variables')}
+        className={styles.formStyles}
+        onSubmit={disableSubmitOnEnter}
+      >
+        <SubMenuItems variables={variables} readOnly={readOnlyVariables} />
+      </form>
+      <Annotations
+        annotations={annotations}
+        onAnnotationChanged={onAnnotationStateChanged}
+        events={dashboard.events}
+      />
+      <div className={styles.spacer} />
+      {dashboard && <DashboardLinks dashboard={dashboard} links={links} />}
+    </div>
+  );
 }
 
 const mapStateToProps: MapStateToProps<ConnectedProps, OwnProps, StoreState> = (state, ownProps) => {
@@ -84,7 +81,7 @@ const mapStateToProps: MapStateToProps<ConnectedProps, OwnProps, StoreState> = (
   };
 };
 
-const getStyles = stylesFactory((theme: GrafanaTheme2) => {
+const getStyles = (theme: GrafanaTheme2) => {
   return {
     formStyles: css({
       display: 'contents',
@@ -103,8 +100,8 @@ const getStyles = stylesFactory((theme: GrafanaTheme2) => {
       flexGrow: 1,
     }),
   };
-});
+};
 
-export const SubMenu = withTheme2(connect(mapStateToProps)(SubMenuUnConnected));
+export const SubMenu = connect(mapStateToProps)(SubMenuUnConnected);
 
 SubMenu.displayName = 'SubMenu';
