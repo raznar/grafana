@@ -122,6 +122,7 @@ export const SaveDashboardAsForm = ({
                 }
                 invalid={!!errors.title}
                 error={errors.title?.message}
+                noMargin
               >
                 <Input
                   {...field}
@@ -155,6 +156,7 @@ export const SaveDashboardAsForm = ({
                 }
                 invalid={!!errors.description}
                 error={errors.description?.message}
+                noMargin
               >
                 <TextArea
                   {...field}
@@ -170,7 +172,7 @@ export const SaveDashboardAsForm = ({
             control={control}
             name="description"
           />
-          <Field label={t('dashboard.save-dashboard-as-form.label-folder', 'Folder')}>
+          <Field label={t('dashboard.save-dashboard-as-form.label-folder', 'Folder')} noMargin>
             <InputControl
               render={({ field: { ref, ...field } }) => (
                 <FolderPicker
@@ -184,7 +186,7 @@ export const SaveDashboardAsForm = ({
             />
           </Field>
           {!isNew && (
-            <Field label={t('dashboard.save-dashboard-as-form.label-copy-tags', 'Copy tags')}>
+            <Field label={t('dashboard.save-dashboard-as-form.label-copy-tags', 'Copy tags')} noMargin>
               <Switch {...register('copyTags')} />
             </Field>
           )}

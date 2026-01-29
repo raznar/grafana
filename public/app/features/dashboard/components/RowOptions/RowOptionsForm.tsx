@@ -32,10 +32,10 @@ export const RowOptionsForm = ({ repeat, title, warning, onUpdate, onCancel }: P
     >
       {({ register }) => (
         <>
-          <Field label={t('dashboard.row-options-form.label-title', 'Title')}>
+          <Field label={t('dashboard.row-options-form.label-title', 'Title')} noMargin>
             <Input {...register('title')} type="text" />
           </Field>
-          <Field label={t('dashboard.row-options-form.label-repeat-for', 'Repeat for')}>
+          <Field label={t('dashboard.row-options-form.label-repeat-for', 'Repeat for')} noMargin>
             <RepeatRowSelect repeat={newRepeat} onChange={onChangeRepeat} />
           </Field>
           {warning && (

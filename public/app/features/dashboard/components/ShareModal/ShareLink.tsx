@@ -70,15 +70,15 @@ export const ShareLink = memo(({ panel, dashboard }: Props) => {
         </Trans>
       </p>
       <FieldSet>
-        <Field label={timeRangeLabelTranslation} description={isRelativeTime ? timeRangeDescriptionTranslation : ''}>
+        <Field label={timeRangeLabelTranslation} description={isRelativeTime ? timeRangeDescriptionTranslation : ''} noMargin>
           <Switch id="share-current-time-range" value={useCurrentTimeRange} onChange={onUseCurrentTimeRangeChange} />
         </Field>
         <ThemePicker selectedTheme={selectedTheme} onChange={onThemeChange} />
-        <Field label={shortenURLTranslation}>
+        <Field label={shortenURLTranslation} noMargin>
           <Switch id="share-shorten-url" value={useShortUrl} onChange={onUrlShorten} />
         </Field>
 
-        <Field label={linkURLTranslation}>
+        <Field label={linkURLTranslation} noMargin>
           <Input
             id="link-url-input"
             value={shareUrl}

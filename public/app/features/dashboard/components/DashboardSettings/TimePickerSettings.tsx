@@ -80,6 +80,7 @@ export const TimePickerSettings = memo(
         <Field
           label={t('dashboard-settings.time-picker.time-zone-label', 'Time zone')}
           data-testid={selectors.components.TimeZonePicker.containerV2}
+          noMargin
         >
           <TimeZonePicker
             inputId="time-options-input"
@@ -92,6 +93,7 @@ export const TimePickerSettings = memo(
         <Field
           label={t('dashboard-settings.time-picker.week-start-label', 'Week start')}
           data-testid={selectors.components.WeekStartPicker.containerV2}
+          noMargin
         >
           <WeekStartPicker inputId="week-start-input" width={40} value={weekStart} onChange={handleWeekStartChange} />
         </Field>
@@ -102,6 +104,7 @@ export const TimePickerSettings = memo(
             'dashboard-settings.time-picker.now-delay-description',
             'Exclude recent data that may be incomplete.'
           )}
+          noMargin
         >
           <Input
             id="now-delay-input"
@@ -112,7 +115,7 @@ export const TimePickerSettings = memo(
             defaultValue={nowDelay}
           />
         </Field>
-        <Field label={t('dashboard-settings.time-picker.hide-time-picker', 'Hide time picker')}>
+        <Field label={t('dashboard-settings.time-picker.hide-time-picker', 'Hide time picker')} noMargin>
           <Switch id="hide-time-picker-toggle" value={!!timePickerHidden} onChange={handleHideTimePickerChange} />
         </Field>
         <Field
@@ -121,6 +124,7 @@ export const TimePickerSettings = memo(
             'dashboard-settings.time-picker.refresh-live-dashboards-description',
             'Continuously update panels when the time range includes the current time'
           )}
+          noMargin
         >
           <Switch id="refresh-live-dashboards-toggle" value={!!liveNow} onChange={handleLiveNowChange} />
         </Field>

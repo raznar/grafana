@@ -69,7 +69,7 @@ export function ShareEmbed({
       <p>
         <Trans i18nKey="share-modal.embed.info">Generate HTML for embedding an iframe with this panel</Trans>
       </p>
-      <Field>
+      <Field noMargin>
         <Stack gap={1} alignItems="start">
           <Switch
             label={t('share-modal.embed.time-range', 'Lock time range')}
@@ -94,6 +94,7 @@ export function ShareEmbed({
           'share-modal.embed.html-description',
           'The HTML code below can be pasted and included in another web page. Unless anonymous access is enabled, the users viewing that page need to be signed into Grafana for the graph to load.'
         )}
+        noMargin
       >
         <TextArea
           data-testid="share-embed-html"

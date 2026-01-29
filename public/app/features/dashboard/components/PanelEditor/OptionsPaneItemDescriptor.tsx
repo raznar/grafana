@@ -78,8 +78,9 @@ function OptionsPaneItem({ itemDescriptor, searchQuery }: OptionsPaneItemProps) 
       label={renderOptionLabel(itemDescriptor, searchQuery)}
       description={description}
       key={key}
-      aria-label={selectors.components.PanelEditor.OptionsPane.fieldLabel(key)}
+      data-testid={selectors.components.PanelEditor.OptionsPane.fieldLabel(key)}
       htmlFor={id}
+      noMargin
     >
       {render(itemDescriptor)}
     </Field>

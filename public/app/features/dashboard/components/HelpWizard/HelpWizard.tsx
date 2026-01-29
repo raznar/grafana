@@ -114,7 +114,7 @@ export function HelpWizard({ panel, plugin, onClose }: Props) {
       {currentTab === SnapshotTab.Data && (
         <div className={styles.code}>
           <div className={styles.opts}>
-            <Field label={t('dashboard.help-wizard.label-template', 'Template')} className={styles.field}>
+            <Field label={t('dashboard.help-wizard.label-template', 'Template')} className={styles.field} noMargin>
               <Select options={options} value={showMessage} onChange={service.onShowMessageChange} />
             </Field>
 
@@ -152,6 +152,7 @@ export function HelpWizard({ panel, plugin, onClose }: Props) {
               'dashboard.help-wizard.description-obfuscate-data',
               'Modify the original data to hide sensitve information.  Note the lengths will stay the same, and duplicate values will be equal.'
             )}
+            noMargin
           >
             <Stack direction="row" gap={1}>
               <InlineSwitch
@@ -183,6 +184,7 @@ export function HelpWizard({ panel, plugin, onClose }: Props) {
             description={t('dashboard.help-wizard.description-support-snapshot', 'Panel: {{panelTitle}}', {
               panelTitle,
             })}
+            noMargin
           >
             <Stack>
               <Button icon="download-alt" onClick={service.onDownloadDashboard}>

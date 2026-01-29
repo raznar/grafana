@@ -112,7 +112,7 @@ export const DynamicConfigValueEditor = ({
   } else {
     editor = (
       <div>
-        <Field label={renderLabel()()} description={item.description}>
+        <Field label={renderLabel()()} description={item.description} noMargin>
           <item.override
             value={property.value}
             onChange={(value) => {

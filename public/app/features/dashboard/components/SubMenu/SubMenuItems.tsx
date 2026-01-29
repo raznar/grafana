@@ -47,9 +47,5 @@ const getStyles = (theme: GrafanaTheme2) => ({
       fontSize: '75%',
       paddingLeft: theme.spacing(1),
     },
-
-    '.gf-form': {
-      marginBottom: 0,
-    },
   }),
 });

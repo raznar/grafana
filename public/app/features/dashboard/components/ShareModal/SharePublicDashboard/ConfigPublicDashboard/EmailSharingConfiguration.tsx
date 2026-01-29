@@ -145,6 +145,7 @@ export const EmailSharingConfiguration = ({ dashboard }: { dashboard: DashboardM
         <Field
           label={t('public-dashboard.config.can-view-dashboard-radio-button-label', 'Can view dashboard')}
           className={styles.field}
+          noMargin
         >
           <Controller
             name="shareType"
@@ -186,6 +187,7 @@ export const EmailSharingConfiguration = ({ dashboard }: { dashboard: DashboardM
               error={errors.email?.message}
               invalid={!!errors.email?.message || undefined}
               className={styles.field}
+              noMargin
             >
               <div className={styles.emailContainer}>
                 <Input

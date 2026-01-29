@@ -137,9 +137,10 @@ export const AnnotationSettingsEdit = ({ editIdx, dashboard }: Props) => {
 
   const isNewAnnotation = annotation.name === newAnnotationName;
 
+  const collator = useMemo(() => new Intl.Collator(undefined, { sensitivity: 'base' }), []);
   const sortFn = (a: SelectableValue<number>, b: SelectableValue<number>) => {
     if (a.label && b.label) {
-      return a.label.toLowerCase().localeCompare(b.label.toLowerCase());
+      return collator.compare(a.label, b.label);
     }
 
     return -1;
@@ -165,7 +166,7 @@ export const AnnotationSettingsEdit = ({ editIdx, dashboard }: Props) => {
   return (
     <div>
       <FieldSet className={styles.settingsForm}>
-        <Field label={t('dashboard.annotation-settings-edit.label-name', 'Name')}>
+        <Field label={t('dashboard.annotation-settings-edit.label-name', 'Name')} noMargin>
           <Input
             data-testid={selectors.pages.Dashboard.Settings.Annotations.Settings.name}
             name="name"
@@ -178,6 +179,7 @@ export const AnnotationSettingsEdit = ({ editIdx, dashboard }: Props) => {
         <Field
           label={t('dashboard.annotation-settings-edit.label-data-source', 'Data source')}
           htmlFor="data-source-picker"
+          noMargin
         >
           <DataSourcePicker annotations variables current={annotation.datasource} onChange={onDataSourceChange} />
         </Field>
@@ -200,6 +202,7 @@ export const AnnotationSettingsEdit = ({ editIdx, dashboard }: Props) => {
             'dashboard.annotation-settings-edit.description-enabled-annotation-query-issued-every-dashboard',
             'When enabled the annotation query is issued every dashboard refresh'
           )}
+          noMargin
         >
           <Checkbox name="enable" id="enable" value={annotation.enable} onChange={onChange} />
         </Field>
@@ -209,6 +212,7 @@ export const AnnotationSettingsEdit = ({ editIdx, dashboard }: Props) => {
             'dashboard.annotation-settings-edit.description-hidden',
             'Annotation queries can be toggled on or off at the top of the dashboard. With this option checked this toggle will be hidden.'
           )}
+          noMargin
         >
           <Checkbox name="hide" id="hide" value={annotation.hide} onChange={onChange} />
         </Field>
@@ -218,6 +222,7 @@ export const AnnotationSettingsEdit = ({ editIdx, dashboard }: Props) => {
             'dashboard.annotation-settings-edit.description-color-annotation-event-markers',
             'Color to use for the annotation event markers'
           )}
+          noMargin
         >
           <Stack>
             <ColorValueEditor value={annotation?.iconColor} onChange={onColorChange} />
@@ -226,6 +231,7 @@ export const AnnotationSettingsEdit = ({ editIdx, dashboard }: Props) => {
         <Field
           label={t('dashboard.annotation-settings-edit.label-show-in', 'Show in')}
           data-testid={selectors.pages.Dashboard.Settings.Annotations.NewAnnotation.showInLabel}
+          noMargin
         >
           <>
             <Select

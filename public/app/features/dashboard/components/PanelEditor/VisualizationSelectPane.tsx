@@ -93,11 +93,11 @@ export const VisualizationSelectPane = ({ panel, data }: Props) => {
             variant="secondary"
             icon="angle-up"
             className={styles.closeButton}
-            aria-label={selectors.components.PanelEditor.toggleVizPicker}
+            data-testid={selectors.components.PanelEditor.toggleVizPicker}
             onClick={onCloseVizPicker}
           />
         </div>
-        <Field className={styles.customFieldMargin}>
+        <Field className={styles.customFieldMargin} noMargin>
           <RadioButtonGroup options={radioOptions} value={listMode} onChange={setListMode} fullWidth />
         </Field>
       </div>

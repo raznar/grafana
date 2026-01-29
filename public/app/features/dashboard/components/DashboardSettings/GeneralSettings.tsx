@@ -142,6 +142,7 @@ export function GeneralSettingsUnconnected({
                 {config.featureToggles.dashgpt && <GenAIDashTitleButton onGenerate={onTitleChange} />}
               </Stack>
             }
+            noMargin
           >
             <Input
               id="title-input"
@@ -160,6 +161,7 @@ export function GeneralSettingsUnconnected({
                 {config.featureToggles.dashgpt && <GenAIDashDescriptionButton onGenerate={onDescriptionChange} />}
               </Stack>
             }
+            noMargin
           >
             <TextArea
               id="description-input"
@@ -168,11 +170,11 @@ export function GeneralSettingsUnconnected({
               onChange={(e: ChangeEvent<HTMLTextAreaElement>) => onDescriptionChange(e.target.value)}
             />
           </Field>
-          <Field label={t('dashboard-settings.general.tags-label', 'Tags')}>
+          <Field label={t('dashboard-settings.general.tags-label', 'Tags')} noMargin>
             <TagsInput id="tags-input" tags={dashboard.tags} onChange={onTagsChange} width={40} />
           </Field>
 
-          <Field label={t('dashboard-settings.general.folder-label', 'Folder')}>
+          <Field label={t('dashboard-settings.general.folder-label', 'Folder')} noMargin>
             <FolderPicker value={dashboard.meta.folderUid} onChange={onFolderChange} />
           </Field>
 
@@ -182,6 +184,7 @@ export function GeneralSettingsUnconnected({
               'dashboard-settings.general.editable-description',
               'Set to read-only to disable all editing. Reload the dashboard for changes to take effect'
             )}
+            noMargin
           >
             <RadioButtonGroup value={dashboard.editable} options={editableOptions} onChange={onEditableChange} />
           </Field>
@@ -210,6 +213,7 @@ export function GeneralSettingsUnconnected({
               'dashboard-settings.general.panel-options-graph-tooltip-description',
               'Controls tooltip and hover highlight behavior across different panels. Reload the dashboard for changes to take effect'
             )}
+            noMargin
           >
             <RadioButtonGroup
               onChange={onTooltipChange}

@@ -80,7 +80,7 @@ export const ShareExport = memo(({ dashboard, panel, onDismiss }: Props) => {
       <p>
         <Trans i18nKey="share-modal.export.info-text">Export this dashboard.</Trans>
       </p>
-      <Field label={exportExternallyTranslation}>
+      <Field label={exportExternallyTranslation} noMargin>
         <Switch id="share-externally-toggle" value={shareExternally} onChange={onShareExternallyChange} />
       </Field>
       <Modal.ButtonRow>

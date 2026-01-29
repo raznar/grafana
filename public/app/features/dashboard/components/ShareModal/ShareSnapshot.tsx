@@ -258,10 +258,10 @@ export class ShareSnapshot extends PureComponent<Props, State> {
             </Trans>
           </p>
         </div>
-        <Field label={snapshotNameTranslation}>
+        <Field label={snapshotNameTranslation} noMargin>
           <Input id="snapshot-name-input" width={30} value={snapshotName} onChange={this.onSnapshotNameChange} />
         </Field>
-        <Field label={expireTranslation}>
+        <Field label={expireTranslation} noMargin>
           <Select
             inputId="expire-select-input"
             width={30}
@@ -270,7 +270,7 @@ export class ShareSnapshot extends PureComponent<Props, State> {
             onChange={this.onExpireChange}
           />
         </Field>
-        <Field label={timeoutTranslation} description={timeoutDescriptionTranslation}>
+        <Field label={timeoutTranslation} description={timeoutDescriptionTranslation} noMargin>
           <Input id="timeout-input" type="number" width={21} value={timeoutSeconds} onChange={this.onTimeoutChange} />
         </Field>
 
@@ -301,7 +301,7 @@ export class ShareSnapshot extends PureComponent<Props, State> {
 
     return (
       <Stack direction="column" gap={0}>
-        <Field label={t('share-modal.snapshot.url-label', 'Snapshot URL')}>
+        <Field label={t('share-modal.snapshot.url-label', 'Snapshot URL')} noMargin>
           <Input
             id="snapshot-url-input"
             value={snapshotUrl}
