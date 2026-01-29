@@ -138,16 +138,16 @@ export const AnnotationSettingsEdit = ({ editIdx, dashboard }: Props) => {
   const isNewAnnotation = annotation.name === newAnnotationName;
 
   const collator = useMemo(() => new Intl.Collator(undefined, { sensitivity: 'base' }), []);
-  const sortFn = (a: SelectableValue<number>, b: SelectableValue<number>) => {
-    if (a.label && b.label) {
-      return collator.compare(a.label, b.label);
-    }
 
-    return -1;
-  };
+  const panels: Array<SelectableValue<number>> = useMemo(() => {
+    const sortFn = (a: SelectableValue<number>, b: SelectableValue<number>) => {
+      if (a.label && b.label) {
+        return collator.compare(a.label, b.label);
+      }
+      return -1;
+    };
 
-  const panels: Array<SelectableValue<number>> = useMemo(
-    () =>
+    return (
       dashboard?.panels
         // Filtering out rows at the moment, revisit to only include panels that support annotations
         // However the information to know if a panel supports annotations requires it to be already loaded
@@ -159,9 +159,9 @@ export const AnnotationSettingsEdit = ({ editIdx, dashboard }: Props) => {
           description: panel.description,
           imgUrl: config.panels[panel.type].info.logos.small,
         }))
-        .sort(sortFn) ?? [],
-    [dashboard]
-  );
+        .sort(sortFn) ?? []
+    );
+  }, [dashboard, collator]);
 
   return (
     <div>

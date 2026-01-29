@@ -1,5 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
-import type { ComponentProps } from 'react';
+import { useCallback, useMemo, useState, type ComponentProps } from 'react';
 
 import { t } from '@grafana/i18n';
 import { config } from '@grafana/runtime';

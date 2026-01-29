@@ -1947,11 +1947,6 @@
       "count": 1
     }
   },
-  "public/app/features/dashboard/components/AnnotationSettings/AnnotationSettingsEdit.tsx": {
-    "no-restricted-syntax": {
-      "count": 7
-    }
-  },
   "public/app/features/dashboard/components/DashExportModal/DashboardExporter.test.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 6
@@ -1963,11 +1958,6 @@
     },
     "@typescript-eslint/no-explicit-any": {
       "count": 7
-    }
-  },
-  "public/app/features/dashboard/components/DashNav/DashNavTimeControls.tsx": {
-    "react-prefer-function-component/react-prefer-function-component": {
-      "count": 1
     }
   },
   "public/app/features/dashboard/components/DashboardPrompt/DashboardPrompt.test.tsx": {
@@ -1988,54 +1978,13 @@
       "count": 1
     }
   },
-  "public/app/features/dashboard/components/DashboardRow/DashboardRow.tsx": {
-    "react-prefer-function-component/react-prefer-function-component": {
-      "count": 1
-    }
-  },
-  "public/app/features/dashboard/components/DashboardSettings/AutoRefreshIntervals.tsx": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "public/app/features/dashboard/components/DashboardSettings/GeneralSettings.tsx": {
-    "no-restricted-syntax": {
-      "count": 6
-    }
-  },
-  "public/app/features/dashboard/components/DashboardSettings/TimePickerSettings.tsx": {
-    "no-restricted-syntax": {
-      "count": 5
-    }
-  },
-  "public/app/features/dashboard/components/DashboardSettings/VersionsSettings.tsx": {
-    "react-prefer-function-component/react-prefer-function-component": {
-      "count": 1
-    }
-  },
-  "public/app/features/dashboard/components/HelpWizard/HelpWizard.tsx": {
-    "no-restricted-syntax": {
-      "count": 3
-    }
-  },
   "public/app/features/dashboard/components/Inspector/PanelInspector.tsx": {
     "@typescript-eslint/consistent-type-assertions": {
       "count": 1
     }
   },
-  "public/app/features/dashboard/components/PanelEditor/DynamicConfigValueEditor.tsx": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "public/app/features/dashboard/components/PanelEditor/OptionsPaneItemDescriptor.tsx": {
-    "@grafana/no-aria-label-selectors": {
-      "count": 1
-    },
     "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    },
-    "no-restricted-syntax": {
       "count": 1
     }
   },
@@ -2052,14 +2001,6 @@
       "count": 1
     }
   },
-  "public/app/features/dashboard/components/PanelEditor/VisualizationSelectPane.tsx": {
-    "@grafana/no-aria-label-selectors": {
-      "count": 1
-    },
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "public/app/features/dashboard/components/PanelEditor/getVisualizationOptions.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
@@ -2073,79 +2014,18 @@
       "count": 3
     }
   },
-  "public/app/features/dashboard/components/RowOptions/RowOptionsForm.tsx": {
-    "no-restricted-syntax": {
-      "count": 2
-    }
-  },
-  "public/app/features/dashboard/components/SaveDashboard/SaveDashboardButton.tsx": {
-    "@grafana/no-aria-label-selectors": {
-      "count": 2
-    }
-  },
-  "public/app/features/dashboard/components/SaveDashboard/forms/SaveDashboardAsForm.tsx": {
-    "no-restricted-syntax": {
-      "count": 4
-    }
-  },
-  "public/app/features/dashboard/components/SaveDashboard/forms/SaveDashboardForm.tsx": {
-    "@grafana/no-aria-label-selectors": {
-      "count": 3
-    }
-  },
   "public/app/features/dashboard/components/SaveDashboard/useDashboardSave.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
     }
   },
-  "public/app/features/dashboard/components/ShareModal/ShareEmbed.tsx": {
-    "no-restricted-syntax": {
-      "count": 2
-    }
-  },
   "public/app/features/dashboard/components/ShareModal/ShareExport.tsx": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
-    },
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "public/app/features/dashboard/components/ShareModal/ShareLink.tsx": {
-    "no-restricted-syntax": {
-      "count": 3
-    }
-  },
-  "public/app/features/dashboard/components/ShareModal/ShareModal.tsx": {
-    "react-prefer-function-component/react-prefer-function-component": {
-      "count": 1
-    }
-  },
-  "public/app/features/dashboard/components/ShareModal/SharePublicDashboard/ConfigPublicDashboard/ConfigPublicDashboard.tsx": {
-    "no-restricted-syntax": {
-      "count": 3
-    }
-  },
-  "public/app/features/dashboard/components/ShareModal/SharePublicDashboard/ConfigPublicDashboard/EmailSharingConfiguration.tsx": {
-    "no-restricted-syntax": {
-      "count": 2
     }
   },
   "public/app/features/dashboard/components/ShareModal/ShareSnapshot.tsx": {
-    "no-restricted-syntax": {
-      "count": 4
-    },
     "react-prefer-function-component/react-prefer-function-component": {
-      "count": 1
-    }
-  },
-  "public/app/features/dashboard/components/ShareModal/ThemePicker.tsx": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "public/app/features/dashboard/components/SubMenu/AnnotationPicker.tsx": {
-    "no-restricted-syntax": {
       "count": 1
     }
   },
@@ -2154,21 +2034,6 @@
       "count": 1
     },
     "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "public/app/features/dashboard/components/SubMenu/SubMenu.tsx": {
-    "react-prefer-function-component/react-prefer-function-component": {
-      "count": 1
-    }
-  },
-  "public/app/features/dashboard/components/SubMenu/SubMenuItems.tsx": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
-  "public/app/features/dashboard/components/TransformationsEditor/TransformationFilter.tsx": {
-    "no-restricted-syntax": {
       "count": 1
     }
   },
@@ -2189,9 +2054,6 @@
     }
   },
   "public/app/features/dashboard/containers/DashboardPage.tsx": {
-    "@grafana/no-aria-label-selectors": {
-      "count": 1
-    },
     "@typescript-eslint/consistent-type-assertions": {
       "count": 2
     },
