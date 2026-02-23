@@ -296,9 +296,12 @@ yarn lint           # Frontend
 - [Backend Style Guide](contribute/backend/style-guide.md)
 - [Frontend Style Guide](contribute/style-guides/frontend.md)
 - [Grafana Documentation](https://grafana.com/docs/)
-
+- [Accessibility Style Guide](contribute/style-guides/accessibility.md)
 # Sample Code
 ```tsx
 <Button onClick={() => {}}>Click me</Button>
+    <Field label="Username">
+  <Input id="username" placeholder="Enter a name" value={'Test'} />
+</Field>    
 ``` 
 
