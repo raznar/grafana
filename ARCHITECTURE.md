@@ -8,12 +8,14 @@ Grafana is a full-stack application with a Go backend and React/TypeScript front
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
+
+| Layer    | Technology                                               |
+| -------- | -------------------------------------------------------- |
 | Frontend | React 18, TypeScript, Redux Toolkit, Emotion (CSS-in-JS) |
-| Backend | Go, Wire (dependency injection), XORM (database) |
-| Database | PostgreSQL, MySQL, or SQLite |
-| Build | Yarn (frontend), Go modules (backend) |
+| Backend  | Go, Wire (dependency injection), XORM (database)         |
+| Database | PostgreSQL, MySQL, or SQLite                             |
+| Build    | Yarn (frontend), Go modules (backend)                    |
+
 
 ## High-Level Architecture
 
@@ -96,20 +98,22 @@ pkg/
 
 #### Key Services (`pkg/services/`)
 
-| Service | Description |
-|---------|-------------|
-| `accesscontrol` | Role-based access control |
-| `alerting` / `ngalert` | Alerting engine and rules |
-| `annotations` | Annotation storage and retrieval |
-| `auth` / `authn` / `authz` | Authentication and authorization |
-| `dashboards` | Dashboard CRUD operations |
-| `datasources` | Data source management |
-| `featuremgmt` | Feature flags management |
-| `folder` | Folder hierarchy management |
-| `live` | Real-time WebSocket communication |
-| `plugins` | Plugin lifecycle management |
-| `provisioning` | Configuration provisioning |
-| `user` / `org` | User and organization management |
+
+| Service                    | Description                       |
+| -------------------------- | --------------------------------- |
+| `accesscontrol`            | Role-based access control         |
+| `alerting` / `ngalert`     | Alerting engine and rules         |
+| `annotations`              | Annotation storage and retrieval  |
+| `auth` / `authn` / `authz` | Authentication and authorization  |
+| `dashboards`               | Dashboard CRUD operations         |
+| `datasources`              | Data source management            |
+| `featuremgmt`              | Feature flags management          |
+| `folder`                   | Folder hierarchy management       |
+| `live`                     | Real-time WebSocket communication |
+| `plugins`                  | Plugin lifecycle management       |
+| `provisioning`             | Configuration provisioning        |
+| `user` / `org`             | User and organization management  |
+
 
 ### Frontend (`public/app/`)
 
@@ -128,44 +132,50 @@ public/app/
 
 #### Key Features (`public/app/features/`)
 
-| Feature | Description |
-|---------|-------------|
-| `alerting` | Alert rules and notifications UI |
-| `dashboard` / `dashboard-scene` | Dashboard viewing and editing |
-| `datasources` | Data source configuration UI |
-| `explore` | Ad-hoc query exploration |
-| `folders` | Folder management UI |
-| `live` | Real-time updates |
-| `plugins` | Plugin management UI |
-| `variables` | Dashboard template variables |
+
+| Feature                         | Description                      |
+| ------------------------------- | -------------------------------- |
+| `alerting`                      | Alert rules and notifications UI |
+| `dashboard` / `dashboard-scene` | Dashboard viewing and editing    |
+| `datasources`                   | Data source configuration UI     |
+| `explore`                       | Ad-hoc query exploration         |
+| `folders`                       | Folder management UI             |
+| `live`                          | Real-time updates                |
+| `plugins`                       | Plugin management UI             |
+| `variables`                     | Dashboard template variables     |
+
 
 ### Shared Packages (`packages/`)
 
 Reusable NPM packages published under `@grafana/*`:
 
-| Package | Description |
-|---------|-------------|
-| `grafana-data` | Core data structures and utilities |
-| `grafana-ui` | React component library |
-| `grafana-runtime` | Runtime services and APIs |
-| `grafana-schema` | TypeScript schema definitions |
-| `grafana-flamegraph` | Flamegraph visualization |
-| `grafana-prometheus` | Prometheus query utilities |
-| `grafana-alerting` | Alerting utilities |
+
+| Package              | Description                        |
+| -------------------- | ---------------------------------- |
+| `grafana-data`       | Core data structures and utilities |
+| `grafana-ui`         | React component library            |
+| `grafana-runtime`    | Runtime services and APIs          |
+| `grafana-schema`     | TypeScript schema definitions      |
+| `grafana-flamegraph` | Flamegraph visualization           |
+| `grafana-prometheus` | Prometheus query utilities         |
+| `grafana-alerting`   | Alerting utilities                 |
+
 
 ### Application Modules (`apps/`)
 
 Standalone modules following K8s-style resource patterns:
 
-| App | Description |
-|-----|-------------|
-| `alerting` | Alerting system |
-| `dashboard` | Dashboard resources |
-| `folder` | Folder resources |
-| `iam` | Identity and access management |
-| `playlist` | Playlist resources |
-| `plugins` | Plugin registry |
-| `secret` | Secret management |
+
+| App         | Description                    |
+| ----------- | ------------------------------ |
+| `alerting`  | Alerting system                |
+| `dashboard` | Dashboard resources            |
+| `folder`    | Folder resources               |
+| `iam`       | Identity and access management |
+| `playlist`  | Playlist resources             |
+| `plugins`   | Plugin registry                |
+| `secret`    | Secret management              |
+
 
 ## API Architecture
 
@@ -218,13 +228,16 @@ func ProvideService(cfg *setting.Cfg, db db.DB) (*ServiceImpl, error) {
 
 Grafana supports three types of plugins:
 
-| Type | Description | Location |
-|------|-------------|----------|
-| Panel | Visualization components | `public/app/plugins/panel/` |
-| Data Source | Data connectors | `public/app/plugins/datasource/` |
-| App | Full applications | External or bundled |
+
+| Type        | Description              | Location                         |
+| ----------- | ------------------------ | -------------------------------- |
+| Panel       | Visualization components | `public/app/plugins/panel/`      |
+| Data Source | Data connectors          | `public/app/plugins/datasource/` |
+| App         | Full applications        | External or bundled              |
+
 
 Plugins can be:
+
 - **Core:** Built into Grafana
 - **Bundled:** Shipped with Grafana but separately maintained
 - **External:** Installed from the plugin catalog
@@ -283,3 +296,9 @@ yarn lint           # Frontend
 - [Backend Style Guide](contribute/backend/style-guide.md)
 - [Frontend Style Guide](contribute/style-guides/frontend.md)
 - [Grafana Documentation](https://grafana.com/docs/)
+
+# Sample Code
+```tsx
+<Button onClick={() => {}}>Click me</Button>
+``` 
+
