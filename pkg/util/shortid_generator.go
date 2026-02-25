@@ -55,7 +55,8 @@ func GenerateShortUID() string {
 	defer mtx.Unlock()
 
 	if node == nil {
-		node, err := snowflake.NewNode(rand.Int63n(1024))
+		var err error
+		node, err = snowflake.NewNode(rand.Int63n(1024))
 		if err != nil {
 			fmt.Println("failed to create snowflake node:", err)
 		} else if node == nil {
