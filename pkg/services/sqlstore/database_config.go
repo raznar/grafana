@@ -87,9 +87,9 @@ func (dbCfg *DatabaseConfig) readConfig(cfg *setting.Cfg) error {
 		userInfo := dbURL.User
 		if userInfo != nil {
 			dbCfg.User = userInfo.Username()
-			if pwd, set := userInfo.Password(); !set {
-			dbCfg.Pwd = pwd
-		}
+			if pwd, set := userInfo.Password(); set {
+				dbCfg.Pwd = pwd
+			}
 		}
 
 		dbCfg.UrlQueryParams = dbURL.Query()
