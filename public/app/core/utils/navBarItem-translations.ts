@@ -163,6 +163,8 @@ export function getNavTitle(navId: string | undefined) {
       return t('nav.frontend-app.title', 'Frontend');
     case 'plugin-page-grafana-synthetic-monitoring-app':
       return t('nav.synthetics.title', 'Synthetics');
+    case 'labs':
+      return t('nav.labs.title', 'Labs');
     case 'help':
       return t('nav.help.title', 'Help');
     case 'profile/settings':
@@ -275,6 +277,8 @@ export function getNavSubTitle(navId: string | undefined) {
       return t('nav.storage.subtitle', 'Manage file storage');
     case 'migrate-to-cloud':
       return t('nav.migrate-to-cloud.subtitle', 'Copy resources from your self-managed installation to a cloud stack');
+    case 'labs':
+      return t('nav.labs.subtitle', 'Experimental feature flags');
     case 'support-bundles':
       return t('nav.support-bundles.subtitle', 'Download support bundles');
     case 'admin':

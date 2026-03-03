@@ -33,6 +33,7 @@ const (
 	WeightApps
 	WeightPlugin
 	WeightConfig
+	WeightLabs
 	WeightProfile
 	WeightHelp
 )
@@ -55,6 +56,7 @@ const (
 	NavIDCfgPlugins           = "cfg/plugins"
 	NavIDCfgAccess            = "cfg/access"
 	NavIDBookmarks            = "bookmarks"
+	NavIDLabs                 = "labs"
 )
 
 type NavLink struct {

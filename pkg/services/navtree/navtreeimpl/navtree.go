@@ -197,6 +197,17 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
 		})
 	}
 
+	if c.HasRole(org.RoleAdmin) || c.IsGrafanaAdmin {
+		treeRoot.AddSection(&navtree.NavLink{
+			Text:       "Labs",
+			Id:         navtree.NavIDLabs,
+			SubTitle:   "Experimental feature flags",
+			Icon:       "flask",
+			SortWeight: navtree.WeightLabs,
+			Url:        s.cfg.AppSubURL + "/admin/labs",
+		})
+	}
+
 	return treeRoot, nil
 }
 

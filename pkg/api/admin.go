@@ -3,12 +3,14 @@ package api
 import (
 	"context"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/grafana/grafana/pkg/api/response"
 	"github.com/grafana/grafana/pkg/apimachinery/identity"
 	ac "github.com/grafana/grafana/pkg/services/accesscontrol"
 	contextmodel "github.com/grafana/grafana/pkg/services/contexthandler/model"
+	"github.com/grafana/grafana/pkg/services/featuremgmt"
 	"github.com/grafana/grafana/pkg/services/stats"
 	"github.com/grafana/grafana/pkg/setting"
 )
@@ -158,6 +160,40 @@ func (hs *HTTPServer) getAuthorizedVerboseSettings(ctx context.Context, user ide
 	}
 
 	return authorizedBag, nil
+}
+
+// FeatureToggleDTO represents a feature toggle with its metadata and current state.
+type FeatureToggleDTO struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Enabled     bool   `json:"enabled"`
+	Stage       string `json:"stage"`
+	FrontendOnly bool  `json:"frontendOnly,omitempty"`
+}
+
+func (hs *HTTPServer) AdminGetFeatureToggles(c *contextmodel.ReqContext) response.Response {
+	enabledFlags := hs.Features.GetEnabled(c.Req.Context())
+	featureList, err := featuremgmt.GetEmbeddedFeatureList()
+	if err != nil {
+		return response.Error(http.StatusInternalServerError, "Failed to get feature toggles", err)
+	}
+
+	toggles := make([]FeatureToggleDTO, 0, len(featureList.Items))
+	for _, feature := range featureList.Items {
+		toggles = append(toggles, FeatureToggleDTO{
+			Name:         feature.Name,
+			Description:  feature.Spec.Description,
+			Enabled:      enabledFlags[feature.Name],
+			Stage:        feature.Spec.Stage,
+			FrontendOnly: feature.Spec.FrontendOnly,
+		})
+	}
+
+	sort.Slice(toggles, func(i, j int) bool {
+		return toggles[i].Name < toggles[j].Name
+	})
+
+	return response.JSON(http.StatusOK, toggles)
 }
 
 // swagger:response adminGetSettingsResponse
