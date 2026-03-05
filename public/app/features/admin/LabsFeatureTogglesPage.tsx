@@ -55,7 +55,9 @@ export default function LabsFeatureTogglesPage() {
     }
 
     for (const toggle of toggles) {
-      setRuntimeFeatureToggle(toggle.name, getEffectiveValue(toggle, overrides));
+      if (Object.prototype.hasOwnProperty.call(overrides, toggle.name)) {
+        setRuntimeFeatureToggle(toggle.name, overrides[toggle.name]);
+      }
     }
   }, [toggles, overrides]);
 
