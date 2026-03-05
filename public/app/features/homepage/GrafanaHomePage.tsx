@@ -4,7 +4,6 @@ import { CSSProperties, useState } from 'react';
 import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
 import { useStyles2 } from '@grafana/ui';
-import { Page } from 'app/core/components/Page/Page';
 
 type HomepageTheme = 'windows98' | 'windowsVista' | 'macos';
 
@@ -24,6 +23,11 @@ interface ThemePreset {
   cardBorder: string;
   cardShadow: string;
   fontFamily: string;
+  chromeBackground: string;
+  chromeBorder: string;
+  chromeText: string;
+  chromeMutedText: string;
+  chromeActiveBackground: string;
 }
 
 const THEME_PRESETS: Record<HomepageTheme, ThemePreset> = {
@@ -43,6 +47,11 @@ const THEME_PRESETS: Record<HomepageTheme, ThemePreset> = {
     cardBorder: '2px solid #ffffff',
     cardShadow: 'inset -1px -1px #000000, inset 1px 1px #dfdfdf',
     fontFamily: '"MS Sans Serif", "Tahoma", "Segoe UI", sans-serif',
+    chromeBackground: '#c0c0c0',
+    chromeBorder: '#767676',
+    chromeText: '#101010',
+    chromeMutedText: '#2e2e2e',
+    chromeActiveBackground: '#d8d8d8',
   },
   windowsVista: {
     shellBackground: 'linear-gradient(160deg, #0a2f67 0%, #204f98 45%, #0a1b35 100%)',
@@ -60,6 +69,11 @@ const THEME_PRESETS: Record<HomepageTheme, ThemePreset> = {
     cardBorder: '1px solid #b5d2ff',
     cardShadow: '0 10px 22px rgba(15, 52, 110, 0.22)',
     fontFamily: '"Segoe UI", "Tahoma", sans-serif',
+    chromeBackground: '#dcecff',
+    chromeBorder: '#8fbaf8',
+    chromeText: '#14385f',
+    chromeMutedText: '#2e5c8c',
+    chromeActiveBackground: '#f4f8ff',
   },
   macos: {
     shellBackground: 'linear-gradient(150deg, #6c66ff 0%, #f26fa7 45%, #f9b466 100%)',
@@ -77,6 +91,11 @@ const THEME_PRESETS: Record<HomepageTheme, ThemePreset> = {
     cardBorder: '1px solid rgba(148, 163, 184, 0.35)',
     cardShadow: '0 12px 24px rgba(31, 41, 55, 0.14)',
     fontFamily: '"SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif',
+    chromeBackground: '#eef2f6',
+    chromeBorder: '#c8d0db',
+    chromeText: '#1f2937',
+    chromeMutedText: '#5a6472',
+    chromeActiveBackground: '#ffffff',
   },
 };
 
@@ -92,6 +111,15 @@ export default function GrafanaHomePage() {
     macos: t('home-page.theme.macos.label', 'macOS'),
   };
   const activeThemeLabel = themeLabels[selectedTheme];
+  const navItems = [
+    t('home-page.nav.home', 'Home'),
+    t('home-page.nav.bookmarks', 'Bookmarks'),
+    t('home-page.nav.starred', 'Starred'),
+    t('home-page.nav.dashboards', 'Dashboards'),
+    t('home-page.nav.explore', 'Explore'),
+    t('home-page.nav.alerting', 'Alerting'),
+    t('home-page.nav.connections', 'Connections'),
+  ];
   const quickActions = [
     {
       title: t('home-page.quick-actions.metrics.title', 'Metrics at a glance'),
@@ -121,22 +149,50 @@ export default function GrafanaHomePage() {
     color: activeTheme.textColor,
     fontFamily: activeTheme.fontFamily,
   };
-
+  const topBarStyle: CSSProperties = {
+    background: activeTheme.chromeBackground,
+    borderBottom: `1px solid ${activeTheme.chromeBorder}`,
+    color: activeTheme.chromeText,
+  };
+  const sideBarStyle: CSSProperties = {
+    background: activeTheme.chromeBackground,
+    borderRight: `1px solid ${activeTheme.chromeBorder}`,
+    color: activeTheme.chromeText,
+  };
+  const activeNavStyle: CSSProperties = {
+    background: activeTheme.chromeActiveBackground,
+    color: activeTheme.chromeText,
+  };
   const windowStyle: CSSProperties = {
     background: activeTheme.windowBackground,
     border: activeTheme.windowBorder,
     boxShadow: activeTheme.windowShadow,
   };
-
   const titleBarStyle: CSSProperties = {
     background: activeTheme.titleBarBackground,
     color: activeTheme.titleBarText,
   };
 
   return (
-    <Page navId="home" pageNav={{ text: t('home-page.page-nav.title', 'Homepage'), active: true }}>
-      <Page.Contents>
-        <section className={styles.shell} style={shellStyle}>
+    <div className={styles.desktop} style={shellStyle}>
+      <aside className={styles.sidebar} style={sideBarStyle}>
+        <div className={styles.logo}>{t('home-page.logo', 'Grafana')}</div>
+        <nav className={styles.navList}>
+          {navItems.map((item, index) => (
+            <div
+              key={item}
+              className={styles.navItem}
+              style={index === 0 ? activeNavStyle : { color: activeTheme.chromeMutedText }}
+            >
+              {item}
+            </div>
+          ))}
+        </nav>
+      </aside>
+
+      <section className={styles.workspace}>
+        <header className={styles.topBar} style={topBarStyle}>
+          <div className={styles.topBarTitle}>{t('home-page.page-nav.title', 'Homepage')}</div>
           <div className={styles.pickerRow}>
             <p className={styles.label}>{t('home-page.theme-picker.label', 'Theme picker')}</p>
             <div className={styles.buttonRow}>
@@ -159,7 +215,9 @@ export default function GrafanaHomePage() {
               ))}
             </div>
           </div>
+        </header>
 
+        <main className={styles.mainContent}>
           <article className={styles.window} style={windowStyle}>
             <header className={styles.windowHeader} style={titleBarStyle}>
               <span>{t('home-page.window.header', 'Grafana homepage')}</span>
@@ -200,24 +258,57 @@ export default function GrafanaHomePage() {
               </div>
             </div>
           </article>
-        </section>
-      </Page.Contents>
-    </Page>
+        </main>
+      </section>
+    </div>
   );
 }
 
 const getStyles = (theme: GrafanaTheme2) => ({
-  shell: css({
-    borderRadius: theme.shape.radius.default,
-    padding: theme.spacing(4),
-    minHeight: 'calc(100vh - 220px)',
+  desktop: css({
+    minHeight: '100vh',
+    display: 'grid',
+    gridTemplateColumns: '220px minmax(0, 1fr)',
+  }),
+  sidebar: css({
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(3),
+    padding: theme.spacing(2, 1.5),
+  }),
+  logo: css({
+    fontWeight: theme.typography.fontWeightBold,
+    marginBottom: theme.spacing(2),
+  }),
+  navList: css({
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.spacing(0.5),
+  }),
+  navItem: css({
+    padding: theme.spacing(1),
+    borderRadius: theme.shape.radius.default,
+    fontSize: theme.typography.bodySmall.fontSize,
+  }),
+  workspace: css({
+    display: 'flex',
+    flexDirection: 'column',
+    minWidth: 0,
+  }),
+  topBar: css({
+    height: theme.spacing(6),
+    padding: theme.spacing(1, 2),
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.spacing(2),
+  }),
+  topBarTitle: css({
+    fontSize: theme.typography.body.fontSize,
+    fontWeight: theme.typography.fontWeightMedium,
   }),
   pickerRow: css({
     display: 'flex',
-    flexDirection: 'column',
+    alignItems: 'center',
     gap: theme.spacing(1),
   }),
   label: css({
@@ -241,6 +332,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
   themeButtonActive: css({
     outline: `2px solid ${theme.colors.primary.main}`,
     outlineOffset: '1px',
+  }),
+  mainContent: css({
+    padding: theme.spacing(4),
   }),
   window: css({
     borderRadius: theme.shape.radius.default,

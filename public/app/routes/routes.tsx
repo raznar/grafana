@@ -38,6 +38,7 @@ export function getAppRoutes(): RouteDescriptor[] {
       path: '/',
       pageClass: 'page-dashboard',
       routeName: DashboardRoutes.Home,
+      chromeless: true,
       component: SafeDynamicImport(
         () => import(/* webpackChunkName: "GrafanaHomePage" */ '../features/homepage/GrafanaHomePage')
       ),
