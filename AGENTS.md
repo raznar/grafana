@@ -295,3 +295,31 @@ Use admonitions sparingly.
 Only include exceptional information in admonitions.
 
 <!-- docs-ai-end -->
+
+## Cursor Cloud specific instructions
+
+Grafana is a full-stack application with a Go backend and React/TypeScript frontend. For complete development setup details, refer to `contribute/developer-guide.md`.
+
+### Services
+
+- **Backend (Go):** Run with `make run` (uses Air for hot-reload). Serves on `http://localhost:3000`. Default login: `admin`/`admin`.
+- **Frontend (webpack):** Run with `yarn start` (dev mode with watch). Proxied through the backend on port 3000.
+- **Database:** SQLite is the default (embedded, no setup needed). No external services are required for basic development.
+
+### Key commands
+
+- **Lint frontend:** `yarn lint` (runs ESLint + Stylelint)
+- **Lint backend:** Requires `golangci-lint` (installed via `.citools/install.sh`)
+- **Test frontend:** `yarn jest --ci` (Jest, can shard with `--shard=N/M`)
+- **Test backend:** `go test -v ./pkg/util/...` (or any package path). Full `./pkg/...` tests take a long time due to compilation.
+- **Build frontend (prod):** `yarn build`
+
+### Gotchas
+
+- Node.js v24.11.0 is required (check `.nvmrc`). Use `nvm` to install: `nvm install v24.11.0 && nvm use v24.11.0`.
+- Yarn 4 uses `enableScripts: false` in `.yarnrc.yml`. This is intentional and build scripts for native addons are disabled.
+- Run `corepack enable && corepack install` before `yarn install` to ensure the correct Yarn version is active.
+- Increase inotify watchers before running `yarn start`: `echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p`.
+- Increase the open file limit before `make run`: `ulimit -S -n 8000`.
+- Set `NODE_OPTIONS="--max-old-space-size=8192"` if webpack runs out of heap memory.
+- Go compilation of the full backend takes several minutes on first run. Subsequent `make run` rebuilds are incremental via Air.
