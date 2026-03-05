@@ -2281,3 +2281,10 @@ func GetEmbeddedFeatureList() (featuretoggleapi.FeatureList, error) {
 	}
 	return features, err
 }
+
+// GetRegisteredFeatureFlags returns a copy of all currently registered feature flags.
+func GetRegisteredFeatureFlags() []FeatureFlag {
+	flags := make([]FeatureFlag, len(standardFeatureFlags))
+	copy(flags, standardFeatureFlags)
+	return flags
+}

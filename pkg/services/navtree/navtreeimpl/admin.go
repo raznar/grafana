@@ -122,6 +122,25 @@ func (s *ServiceImpl) getAdminNode(c *contextmodel.ReqContext) (*navtree.NavLink
 		configNodes = append(configNodes, pluginsNode)
 	}
 
+	if c.IsGrafanaAdmin {
+		configNodes = append(configNodes, &navtree.NavLink{
+			Text:     "Labs",
+			SubTitle: "Configure experimental and preview feature flags",
+			Id:       navtree.NavIDCfgLabs,
+			Url:      s.cfg.AppSubURL + "/admin/labs",
+			Icon:     "shield",
+			Children: []*navtree.NavLink{
+				{
+					Text:     "Feature toggles",
+					SubTitle: "Enable or disable feature flags for your browser session",
+					Id:       "labs-feature-toggles",
+					Url:      s.cfg.AppSubURL + "/admin/labs/feature-toggles",
+					Icon:     "toggle-on",
+				},
+			},
+		})
+	}
+
 	accessNodeLinks := []*navtree.NavLink{}
 	if hasAccess(ac.EvalAny(ac.EvalPermission(ac.ActionOrgUsersRead), ac.EvalPermission(ac.ActionUsersRead, ac.ScopeGlobalUsersAll))) {
 		accessNodeLinks = append(accessNodeLinks, &navtree.NavLink{

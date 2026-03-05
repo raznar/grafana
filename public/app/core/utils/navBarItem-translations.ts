@@ -95,6 +95,8 @@ export function getNavTitle(navId: string | undefined) {
       return t('nav.config-plugins.title', 'Plugins and data');
     case 'cfg/access':
       return t('nav.config-access.title', 'Users and access');
+    case 'cfg/labs':
+      return t('nav.config-labs.title', 'Labs');
     case 'datasources':
       return t('nav.datasources.title', 'Data sources');
     case 'authentication':
@@ -125,6 +127,8 @@ export function getNavTitle(navId: string | undefined) {
       return t('nav.global-orgs.title', 'Organizations');
     case 'server-settings':
       return t('nav.server-settings.title', 'Settings');
+    case 'labs-feature-toggles':
+      return t('nav.labs-feature-toggles.title', 'Feature toggles');
     case 'storage':
       return t('nav.storage.title', 'Storage');
     case 'migrate-to-cloud':
@@ -288,6 +292,10 @@ export function getNavSubTitle(navId: string | undefined) {
       return t('nav.config-plugins.subtitle', 'Install plugins and define the relationships between data');
     case 'cfg/access':
       return t('nav.config-access.subtitle', 'Configure access for individual users, teams, and service accounts');
+    case 'cfg/labs':
+      return t('nav.config-labs.subtitle', 'Configure experimental and preview feature flags');
+    case 'labs-feature-toggles':
+      return t('nav.labs-feature-toggles.subtitle', 'Enable or disable feature flags for your browser session');
     case 'apps':
       return t('nav.apps.subtitle', 'App plugins that extend the Grafana experience');
     case 'monitoring':
