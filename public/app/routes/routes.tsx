@@ -39,7 +39,7 @@ export function getAppRoutes(): RouteDescriptor[] {
       pageClass: 'page-dashboard',
       routeName: DashboardRoutes.Home,
       component: SafeDynamicImport(
-        () => import(/* webpackChunkName: "DashboardPageProxy" */ '../features/dashboard/containers/DashboardPageProxy')
+        () => import(/* webpackChunkName: "GrafanaHomePage" */ '../features/homepage/GrafanaHomePage')
       ),
     },
     {
