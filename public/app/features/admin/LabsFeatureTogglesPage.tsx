@@ -1,5 +1,5 @@
 import { css } from '@emotion/css';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAsync } from 'react-use';
 
 import { GrafanaTheme2 } from '@grafana/data';
@@ -41,6 +41,7 @@ export default function LabsFeatureTogglesPage() {
   const styles = useStyles2(getStyles);
   const [query, setQuery] = useState('');
   const [overrides, setOverrides] = useState<FeatureToggleOverrides>(() => readFeatureToggleOverrides());
+  const hasInitializedOverrides = useRef(false);
 
   const {
     loading,
@@ -57,6 +58,15 @@ export default function LabsFeatureTogglesPage() {
       setRuntimeFeatureToggle(toggle.name, getEffectiveValue(toggle, overrides));
     }
   }, [toggles, overrides]);
+
+  useEffect(() => {
+    if (!hasInitializedOverrides.current) {
+      hasInitializedOverrides.current = true;
+      return;
+    }
+
+    writeFeatureToggleOverrides(overrides);
+  }, [overrides]);
 
   const filteredToggles = useMemo(() => {
     if (!toggles) {
@@ -88,14 +98,12 @@ export default function LabsFeatureTogglesPage() {
         updated[toggle.name] = nextValue;
       }
 
-      writeFeatureToggleOverrides(updated);
       return updated;
     });
   };
 
   const onResetOverrides = () => {
     setOverrides({});
-    writeFeatureToggleOverrides({});
   };
 
   return (
