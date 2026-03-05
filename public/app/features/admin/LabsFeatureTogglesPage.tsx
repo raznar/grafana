@@ -57,6 +57,8 @@ export default function LabsFeatureTogglesPage() {
     for (const toggle of toggles) {
       if (Object.prototype.hasOwnProperty.call(overrides, toggle.name)) {
         setRuntimeFeatureToggle(toggle.name, overrides[toggle.name]);
+      } else {
+        setRuntimeFeatureToggle(toggle.name, toggle.enabled);
       }
     }
   }, [toggles, overrides]);
@@ -194,7 +196,10 @@ export default function LabsFeatureTogglesPage() {
                         />
                       )}
                       {toggle.requiresDevMode && (
-                        <Badge color="orange" text={t('admin.labs-feature-toggles.badge.dev-mode-only', 'dev mode only')} />
+                        <Badge
+                          color="orange"
+                          text={t('admin.labs-feature-toggles.badge.dev-mode-only', 'dev mode only')}
+                        />
                       )}
                       {isOverridden && (
                         <Badge color="green" text={t('admin.labs-feature-toggles.badge.override', 'override')} />
