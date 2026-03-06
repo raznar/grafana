@@ -10,7 +10,7 @@ describe('GrafanaHomePage', () => {
     expect(screen.getByRole('heading', { name: 'Windows 98 edition' })).toBeInTheDocument();
   });
 
-  it('switches between Windows Vista and macOS themes', async () => {
+  it('switches between Windows Vista, macOS, and NextStep themes', async () => {
     const { user } = render(<GrafanaHomePage />);
 
     await user.click(screen.getByRole('button', { name: 'Windows Vista' }));
@@ -18,5 +18,8 @@ describe('GrafanaHomePage', () => {
 
     await user.click(screen.getByRole('button', { name: 'macOS' }));
     expect(screen.getByRole('heading', { name: 'macOS edition' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'NextStep' }));
+    expect(screen.getByRole('heading', { name: 'NextStep edition' })).toBeInTheDocument();
   });
 });

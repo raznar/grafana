@@ -5,7 +5,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { t } from '@grafana/i18n';
 import { useStyles2 } from '@grafana/ui';
 
-type HomepageTheme = 'windows98' | 'windowsVista' | 'macos';
+type HomepageTheme = 'windows98' | 'windowsVista' | 'macos' | 'nextstep';
 
 interface ThemePreset {
   shellBackground: string;
@@ -97,9 +97,31 @@ const THEME_PRESETS: Record<HomepageTheme, ThemePreset> = {
     chromeMutedText: '#5a6472',
     chromeActiveBackground: '#ffffff',
   },
+  nextstep: {
+    shellBackground: 'linear-gradient(180deg, #1b1d21 0%, #0f1013 100%)',
+    windowBackground: '#d8d8d8',
+    windowBorder: '1px solid #8f8f8f',
+    windowShadow: '0 18px 30px rgba(0, 0, 0, 0.55)',
+    titleBarBackground: 'linear-gradient(180deg, #2f3238 0%, #1a1c20 100%)',
+    titleBarText: '#f3f3f3',
+    textColor: '#1f2023',
+    mutedText: '#4a4d53',
+    buttonBackground: 'linear-gradient(180deg, #f0f0f0 0%, #d3d3d3 100%)',
+    buttonBorder: '1px solid #8f8f8f',
+    buttonShadow: '0 1px 0 rgba(255, 255, 255, 0.75) inset, 0 2px 4px rgba(0, 0, 0, 0.28)',
+    cardBackground: '#ececec',
+    cardBorder: '1px solid #9a9a9a',
+    cardShadow: '0 2px 6px rgba(0, 0, 0, 0.22)',
+    fontFamily: '"Helvetica Neue", "Arial", "Segoe UI", sans-serif',
+    chromeBackground: '#c9c9c9',
+    chromeBorder: '#888888',
+    chromeText: '#1a1b1e',
+    chromeMutedText: '#44474d',
+    chromeActiveBackground: '#ececec',
+  },
 };
 
-const THEME_IDS: HomepageTheme[] = ['windows98', 'windowsVista', 'macos'];
+const THEME_IDS: HomepageTheme[] = ['windows98', 'windowsVista', 'macos', 'nextstep'];
 
 export default function GrafanaHomePage() {
   const styles = useStyles2(getStyles);
@@ -109,6 +131,7 @@ export default function GrafanaHomePage() {
     windows98: t('home-page.theme.windows98.label', 'Windows 98'),
     windowsVista: t('home-page.theme.windows-vista.label', 'Windows Vista'),
     macos: t('home-page.theme.macos.label', 'macOS'),
+    nextstep: t('home-page.theme.nextstep.label', 'NextStep'),
   };
   const activeThemeLabel = themeLabels[selectedTheme];
   const navItems = [
