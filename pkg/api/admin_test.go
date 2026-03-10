@@ -148,6 +148,26 @@ func TestAdmin_AccessControl(t *testing.T) {
 				},
 			},
 		},
+		{
+			expectedCode: http.StatusOK,
+			desc:         "AdminGetFeatureToggles should return 200 for user with correct permissions",
+			url:          "/api/admin/feature-toggles",
+			permissions: []accesscontrol.Permission{
+				{
+					Action: accesscontrol.ActionFeatureManagementRead,
+				},
+			},
+		},
+		{
+			expectedCode: http.StatusForbidden,
+			desc:         "AdminGetFeatureToggles should return 403 for user without required permissions",
+			url:          "/api/admin/feature-toggles",
+			permissions: []accesscontrol.Permission{
+				{
+					Action: "wrong",
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -170,4 +190,25 @@ func TestAdmin_AccessControl(t *testing.T) {
 			require.NoError(t, res.Body.Close())
 		})
 	}
+}
+
+func TestAPI_AdminGetFeatureToggles(t *testing.T) {
+	server := SetupAPITestServer(t, func(hs *HTTPServer) {
+		hs.Cfg = setting.NewCfg()
+		hs.SQLStore = dbtest.NewFakeDB()
+		hs.SettingsProvider = &setting.OSSImpl{Cfg: hs.Cfg}
+	})
+
+	res, err := server.Send(webtest.RequestWithSignedInUser(
+		server.NewGetRequest("/api/admin/feature-toggles"),
+		userWithPermissions(1, []accesscontrol.Permission{{Action: accesscontrol.ActionFeatureManagementRead}}),
+	))
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, res.StatusCode)
+
+	body, err := io.ReadAll(res.Body)
+	require.NoError(t, err)
+	require.Contains(t, string(body), `"items"`)
+	require.Contains(t, string(body), `"disableEnvelopeEncryption"`)
+	require.NoError(t, res.Body.Close())
 }

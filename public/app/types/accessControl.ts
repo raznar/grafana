@@ -169,6 +169,8 @@ export enum AccessControlAction {
   // Settings
   SettingsRead = 'settings:read',
   SettingsWrite = 'settings:write',
+  FeatureManagementRead = 'featuremgmt.read',
+  FeatureManagementWrite = 'featuremgmt.write',
 
   // GroupSync
   GroupSyncMappingsRead = 'groupsync.mappings:read',
