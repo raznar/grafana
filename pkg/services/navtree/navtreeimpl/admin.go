@@ -187,6 +187,17 @@ func (s *ServiceImpl) getAdminNode(c *contextmodel.ReqContext) (*navtree.NavLink
 		})
 	}
 
+	if hasAccess(ac.EvalPermission(ac.ActionFeatureManagementWrite)) {
+		configNodes = append(configNodes, &navtree.NavLink{
+			Text:      "Labs",
+			Id:        "labs",
+			SubTitle:  "Manage experimental feature flags in this browser",
+			Icon:      "flask",
+			IsSection: true,
+			Url:       s.cfg.AppSubURL + "/admin/labs",
+		})
+	}
+
 	configNode := &navtree.NavLink{
 		Id:         navtree.NavIDCfg,
 		Text:       "Administration",

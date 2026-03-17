@@ -32,3 +32,22 @@ export const getServerStats = async (): Promise<ServerStat | null> => {
       return null;
     });
 };
+
+export interface AdminFeatureToggle {
+  name: string;
+  description: string;
+  stage: string;
+  owner?: string;
+  enabled: boolean;
+  defaultEnabled: boolean;
+  requiresRestart?: boolean;
+  frontendOnly?: boolean;
+}
+
+export interface AdminFeatureTogglesResponse {
+  items: AdminFeatureToggle[];
+}
+
+export const getAdminFeatureToggles = async (): Promise<AdminFeatureTogglesResponse> => {
+  return getBackendSrv().get('/api/admin/feature-toggles');
+};
