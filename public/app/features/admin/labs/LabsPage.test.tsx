@@ -33,9 +33,9 @@ jest.mock('@grafana/ui', () => ({
     placeholder,
   }: {
     value?: string;
-    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    onChange?: (value: string) => void;
     placeholder?: string;
-  }) => <input value={value} onChange={onChange} placeholder={placeholder} />,
+  }) => <input value={value} onChange={(event) => onChange?.(event.currentTarget.value)} placeholder={placeholder} />,
   InlineSwitch: ({
     id,
     value,

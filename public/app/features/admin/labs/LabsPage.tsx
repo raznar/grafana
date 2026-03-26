@@ -1,5 +1,5 @@
 import { css } from '@emotion/css';
-import { ChangeEvent, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
 import { GrafanaTheme2 } from '@grafana/data';
@@ -18,7 +18,7 @@ import {
 } from '@grafana/ui';
 import { Page } from 'app/core/components/Page/Page';
 
-import { getLabsFeatureToggles, LabsFeatureToggleState, updateLabsFeatureToggle } from './api';
+import { getLabsFeatureToggles, LabsToggle, updateLabsFeatureToggle } from './api';
 
 type PendingState = Record<string, boolean>;
 
@@ -55,7 +55,7 @@ export default function LabsPage() {
     });
   }, [filter, value?.toggles]);
 
-  const onToggle = async (toggle: LabsFeatureToggleState) => {
+  const onToggle = async (toggle: LabsToggle) => {
     const nextValue = !toggle.enabled;
     setPending((current) => ({ ...current, [toggle.name]: nextValue }));
     setError(undefined);
@@ -114,7 +114,7 @@ export default function LabsPage() {
               className={styles.filter}
               placeholder={t('admin.labs.filter-placeholder', 'Filter feature flags')}
               value={filter}
-              onChange={(event: ChangeEvent<HTMLInputElement>) => setFilter(event.currentTarget.value)}
+              onChange={(query) => setFilter(query)}
             />
             <LinkButton href="/admin/settings" variant="secondary" icon="sliders-v-alt">
               <Trans i18nKey="admin.labs.server-settings-link">Server settings</Trans>
@@ -176,7 +176,7 @@ export default function LabsPage() {
                     {toggle.source?.name === 'labs' && (
                       <Badge text={t('admin.labs.override-badge', 'Labs override')} color="purple" />
                     )}
-                    {value.enabled[toggle.name] && <Badge text={t('admin.labs.enabled-badge', 'Enabled')} color="green" />}
+                    {!!value?.enabled[toggle.name] && <Badge text={t('admin.labs.enabled-badge', 'Enabled')} color="green" />}
                   </div>
                 </div>
               );
