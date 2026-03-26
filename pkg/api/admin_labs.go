@@ -1,7 +1,6 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -78,22 +77,12 @@ func (hs *HTTPServer) AdminUpdateLabsFeatureToggle(c *contextmodel.ReqContext) r
 		return response.Error(http.StatusBadRequest, "feature flag is required", nil)
 	}
 
-	nextOverrides, err := hs.featureManager.OverridesAfterSet(flag, cmd.Enabled)
-	if err != nil {
-		return response.Error(http.StatusBadRequest, fmt.Sprintf("failed to update feature flag %q", flag), err)
-	}
-
-	payload, err := json.Marshal(nextOverrides)
-	if err != nil {
-		return response.Error(http.StatusInternalServerError, "failed to persist feature flag override", err)
-	}
-
-	if err := hs.labsOverrideStore().Set(c.Req.Context(), "overrides", string(payload)); err != nil {
-		return response.Error(http.StatusInternalServerError, "failed to persist feature flag override", err)
-	}
-
 	if err := hs.featureManager.SetOverride(flag, cmd.Enabled); err != nil {
 		return response.Error(http.StatusBadRequest, fmt.Sprintf("failed to update feature flag %q", flag), err)
+	}
+
+	if err := hs.saveLabsFeatureOverrides(c.Req.Context()); err != nil {
+		return response.Error(http.StatusInternalServerError, "failed to persist feature flag override", err)
 	}
 
 	return hs.AdminGetLabsFeatureToggles(c)
