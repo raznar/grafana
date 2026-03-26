@@ -95,6 +95,8 @@ export function getNavTitle(navId: string | undefined) {
       return t('nav.config-plugins.title', 'Plugins and data');
     case 'cfg/access':
       return t('nav.config-access.title', 'Users and access');
+    case 'labs':
+      return t('nav.labs.title', 'Labs');
     case 'datasources':
       return t('nav.datasources.title', 'Data sources');
     case 'authentication':
@@ -288,6 +290,8 @@ export function getNavSubTitle(navId: string | undefined) {
       return t('nav.config-plugins.subtitle', 'Install plugins and define the relationships between data');
     case 'cfg/access':
       return t('nav.config-access.subtitle', 'Configure access for individual users, teams, and service accounts');
+    case 'labs':
+      return t('nav.labs.subtitle', 'Manage server-wide feature flags from one place');
     case 'apps':
       return t('nav.apps.subtitle', 'App plugins that extend the Grafana experience');
     case 'monitoring':

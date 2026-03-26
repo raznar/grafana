@@ -170,6 +170,17 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
 		return nil, err
 	}
 
+	if c.IsGrafanaAdmin {
+		treeRoot.AddSection(&navtree.NavLink{
+			Id:         navtree.NavIDLabs,
+			Text:       "Labs",
+			SubTitle:   "Manage feature flags for experimental and preview capabilities",
+			Icon:       "rocket",
+			SortWeight: navtree.WeightConfig + 1,
+			Url:        s.cfg.AppSubURL + "/admin/labs",
+		})
+	}
+
 	s.addHelpLinks(treeRoot, c)
 
 	if err := s.addAppLinks(treeRoot, c); err != nil {
@@ -196,6 +207,8 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
 			Url:            s.cfg.AppSubURL + "/bookmarks",
 		})
 	}
+
+	treeRoot.Sort()
 
 	return treeRoot, nil
 }
