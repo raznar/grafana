@@ -338,6 +338,13 @@ export function getAppRoutes(): RouteDescriptor[] {
       ),
     },
     {
+      path: '/admin/labs',
+      roles: () => (contextSrv.isGrafanaAdmin ? ['ServerAdmin'] : ['Reject']),
+      component: SafeDynamicImport(
+        () => import(/* webpackChunkName: "AdminLabsPage" */ 'app/features/admin/labs/LabsPage')
+      ),
+    },
+    {
       path: '/admin/upgrading',
       component: SafeDynamicImport(() => import('app/features/admin/UpgradePage')),
     },

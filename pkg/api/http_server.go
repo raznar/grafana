@@ -129,6 +129,7 @@ type HTTPServer struct {
 	RenderService                rendering.Service
 	Cfg                          *setting.Cfg
 	Features                     featuremgmt.FeatureToggles
+	featureManager               *featuremgmt.FeatureManager
 	SettingsProvider             setting.Provider
 	HooksService                 *hooks.HooksService
 	navTreeService               navtree.Service
@@ -386,11 +387,18 @@ func ProvideHTTPServer(opts ServerOptions, cfg *setting.Cfg, routeRegister routi
 		}, []string{"handler"}),
 	}
 
+	if mgr, ok := features.(*featuremgmt.FeatureManager); ok {
+		hs.featureManager = mgr
+	}
+
 	promRegister.MustRegister(hs.htmlHandlerRequestsDuration)
 	promRegister.MustRegister(hs.dsConfigHandlerRequestsDuration)
 
 	if hs.Listener != nil {
 		hs.log.Debug("Using provided listener")
+	}
+	if err := hs.loadLabsFeatureOverrides(); err != nil {
+		return nil, err
 	}
 	hs.registerRoutes()
 
@@ -1050,4 +1058,40 @@ func (hs *HTTPServer) updateMtimeOfServerCerts() error {
 	}
 
 	return nil
+}
+
+func (hs *HTTPServer) labsOverrideStore() *kvstore.NamespacedKVStore {
+	return kvstore.WithNamespace(hs.kvStore, 0, "featuremgmt.labs")
+}
+
+func (hs *HTTPServer) loadLabsFeatureOverrides() error {
+	if hs.featureManager == nil || hs.kvStore == nil {
+		return nil
+	}
+
+	raw, ok, err := hs.labsOverrideStore().Get(context.Background(), "overrides")
+	if err != nil || !ok || raw == "" {
+		return err
+	}
+
+	overrides := map[string]bool{}
+	if err := json.Unmarshal([]byte(raw), &overrides); err != nil {
+		return err
+	}
+
+	hs.featureManager.LoadOverrides(overrides)
+	return nil
+}
+
+func (hs *HTTPServer) saveLabsFeatureOverrides(ctx context.Context) error {
+	if hs.featureManager == nil || hs.kvStore == nil {
+		return nil
+	}
+
+	payload, err := json.Marshal(hs.featureManager.GetOverrides())
+	if err != nil {
+		return err
+	}
+
+	return hs.labsOverrideStore().Set(ctx, "overrides", string(payload))
 }

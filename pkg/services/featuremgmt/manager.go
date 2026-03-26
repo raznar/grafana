@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sort"
+	"sync"
 
 	"github.com/grafana/grafana/pkg/infra/log"
 )
@@ -13,17 +15,37 @@ var (
 )
 
 type FeatureManager struct {
+	mu sync.RWMutex
+
 	isDevMod bool
 
-	flags    map[string]*FeatureFlag
-	enabled  map[string]bool   // only the "on" values
-	startup  map[string]bool   // the explicit values registered at startup
-	warnings map[string]string // potential warnings about the flag
-	log      log.Logger
+	flags     map[string]*FeatureFlag
+	enabled   map[string]bool // only the "on" values
+	startup   map[string]bool // the explicit values registered at startup
+	overrides map[string]bool // persisted admin overrides
+	// unknownOverrideFlags are stub flags created from persisted overrides for names
+	// not in the registry; their warnings must not be cleared by updateLocked.
+	unknownOverrideFlags map[string]struct{}
+	warnings             map[string]string // potential warnings about the flag
+	log                  log.Logger
+}
+
+type ToggleState struct {
+	Flag        FeatureFlag
+	Enabled     bool
+	Default     bool
+	HasOverride bool
+	Override    bool
+	Source      string
+	Writeable   bool
+	Warning     string
 }
 
 // This will merge the flags with the current configuration
 func (fm *FeatureManager) registerFlags(flags ...FeatureFlag) {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+
 	for _, add := range flags {
 		if add.Name == "" {
 			continue // skip it with warning?
@@ -59,7 +81,7 @@ func (fm *FeatureManager) registerFlags(flags ...FeatureFlag) {
 	}
 
 	// This will evaluate all flags
-	fm.update()
+	fm.updateLocked()
 }
 
 // meetsRequirements checks if grafana is able to run the given feature due to dev mode or licensing requirements
@@ -73,20 +95,34 @@ func (fm *FeatureManager) meetsRequirements(ff *FeatureFlag) (bool, string) {
 
 // Update
 func (fm *FeatureManager) update() {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+	fm.updateLocked()
+}
+
+func (fm *FeatureManager) updateLocked() {
 	enabled := make(map[string]bool)
 	for _, flag := range fm.flags {
 		// if grafana cannot run the feature, omit metrics around it
 		ok, reason := fm.meetsRequirements(flag)
 		if !ok {
 			fm.warnings[flag.Name] = reason
+			featureToggleInfo.WithLabelValues(flag.Name).Set(0)
 			continue
+		}
+		if _, unknown := fm.unknownOverrideFlags[flag.Name]; !unknown {
+			delete(fm.warnings, flag.Name)
 		}
 
 		// Update the registry
 		track := 0.0
 
-		startup, ok := fm.startup[flag.Name]
-		if startup || (!ok && flag.Expression == "true") {
+		value := fm.baseEnabledLocked(flag.Name)
+		if override, ok := fm.overrides[flag.Name]; ok {
+			value = override
+		}
+
+		if value {
 			track = 1
 			enabled[flag.Name] = true
 		}
@@ -99,16 +135,23 @@ func (fm *FeatureManager) update() {
 
 // IsEnabled checks if a feature is enabled
 func (fm *FeatureManager) IsEnabled(ctx context.Context, flag string) bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
 	return fm.enabled[flag]
 }
 
 // IsEnabledGlobally checks if a feature is for all tenants
 func (fm *FeatureManager) IsEnabledGlobally(flag string) bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
 	return fm.enabled[flag]
 }
 
 // GetEnabled returns a map containing only the features that are enabled
 func (fm *FeatureManager) GetEnabled(ctx context.Context) map[string]bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
+
 	enabled := make(map[string]bool, len(fm.enabled))
 	for key, val := range fm.enabled {
 		if val {
@@ -120,11 +163,135 @@ func (fm *FeatureManager) GetEnabled(ctx context.Context) map[string]bool {
 
 // GetFlags returns all flag definitions
 func (fm *FeatureManager) GetFlags() []FeatureFlag {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
+
 	v := make([]FeatureFlag, 0, len(fm.flags))
 	for _, value := range fm.flags {
 		v = append(v, *value)
 	}
 	return v
+}
+
+func (fm *FeatureManager) baseEnabledLocked(flag string) bool {
+	startup, ok := fm.startup[flag]
+	return startup || (!ok && fm.flags[flag].Expression == "true")
+}
+
+func (fm *FeatureManager) LoadOverrides(overrides map[string]bool) {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+
+	fm.unknownOverrideFlags = make(map[string]struct{}, len(overrides))
+	fm.overrides = make(map[string]bool, len(overrides))
+	for key, value := range overrides {
+		fm.overrides[key] = value
+		if _, ok := fm.flags[key]; !ok {
+			fm.flags[key] = &FeatureFlag{
+				Name:  key,
+				Stage: FeatureStageUnknown,
+			}
+			fm.unknownOverrideFlags[key] = struct{}{}
+			fm.warnings[key] = "unknown flag override"
+		}
+	}
+
+	fm.updateLocked()
+}
+
+func (fm *FeatureManager) SetOverride(flag string, enabled bool) error {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+
+	next, err := fm.computeOverridesAfterSetLocked(flag, enabled)
+	if err != nil {
+		return err
+	}
+	fm.overrides = next
+	fm.updateLocked()
+	return nil
+}
+
+// computeOverridesAfterSetLocked returns the overrides map after applying SetOverride(flag, enabled).
+// The caller must hold fm.mu (read or write lock).
+func (fm *FeatureManager) computeOverridesAfterSetLocked(flag string, enabled bool) (map[string]bool, error) {
+	ff, ok := fm.flags[flag]
+	if !ok {
+		return nil, fmt.Errorf("unknown feature flag %q", flag)
+	}
+
+	if ok, reason := fm.meetsRequirements(ff); !ok {
+		return nil, fmt.Errorf("%s", reason)
+	}
+
+	next := make(map[string]bool, len(fm.overrides)+1)
+	for k, v := range fm.overrides {
+		next[k] = v
+	}
+	if enabled == fm.baseEnabledLocked(flag) {
+		delete(next, flag)
+	} else {
+		next[flag] = enabled
+	}
+	return next, nil
+}
+
+// OverridesAfterSet returns the overrides map that would result from SetOverride(flag, enabled) without mutating state.
+func (fm *FeatureManager) OverridesAfterSet(flag string, enabled bool) (map[string]bool, error) {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
+	return fm.computeOverridesAfterSetLocked(flag, enabled)
+}
+
+func (fm *FeatureManager) GetOverrides() map[string]bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
+
+	overrides := make(map[string]bool, len(fm.overrides))
+	for key, value := range fm.overrides {
+		overrides[key] = value
+	}
+
+	return overrides
+}
+
+func (fm *FeatureManager) GetToggleStates() []ToggleState {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
+
+	states := make([]ToggleState, 0, len(fm.flags))
+	for _, flag := range fm.flags {
+		defaultEnabled := fm.baseEnabledLocked(flag.Name)
+		enabled := defaultEnabled
+		source := "default"
+		override, hasOverride := fm.overrides[flag.Name]
+		if _, hasStartup := fm.startup[flag.Name]; hasStartup {
+			source = "startup"
+		}
+		if hasOverride {
+			enabled = override
+			source = "labs"
+		}
+
+		warning := fm.warnings[flag.Name]
+		writeable := warning == ""
+		states = append(states, ToggleState{
+			Flag:        *flag,
+			Enabled:     enabled,
+			Default:     defaultEnabled,
+			HasOverride: hasOverride,
+			Override:    override,
+			Source:      source,
+			Writeable:   writeable,
+			Warning:     warning,
+		})
+	}
+
+	sort.Slice(states, func(i, j int) bool {
+		return states[i].Flag.Name < states[j].Flag.Name
+	})
+
+	return states
 }
 
 // ############# Test Functions #############
@@ -157,5 +324,12 @@ func WithManager(spec ...any) *FeatureManager {
 		}
 	}
 
-	return &FeatureManager{enabled: enabled, flags: features, startup: enabled, warnings: map[string]string{}}
+	return &FeatureManager{
+		enabled:              enabled,
+		flags:                features,
+		startup:              enabled,
+		overrides:            map[string]bool{},
+		unknownOverrideFlags: map[string]struct{}{},
+		warnings:             map[string]string{},
+	}
 }

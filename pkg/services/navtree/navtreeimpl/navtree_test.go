@@ -158,3 +158,4 @@ func TestBuildStarredItemsNavLinks(t *testing.T) {
 		require.Equal(t, "C Dashboard", navLinks[2].Text)
 	})
 }
+
