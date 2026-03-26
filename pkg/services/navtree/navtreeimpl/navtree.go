@@ -208,8 +208,6 @@ func (s *ServiceImpl) GetNavTree(c *contextmodel.ReqContext, prefs *pref.Prefere
 		})
 	}
 
-	treeRoot.Sort()
-
 	return treeRoot, nil
 }
 

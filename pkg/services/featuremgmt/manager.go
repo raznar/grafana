@@ -20,22 +20,25 @@ type FeatureManager struct {
 	isDevMod bool
 
 	flags     map[string]*FeatureFlag
-	enabled   map[string]bool   // only the "on" values
-	startup   map[string]bool   // the explicit values registered at startup
-	overrides map[string]bool   // persisted admin overrides
-	warnings  map[string]string // potential warnings about the flag
-	log       log.Logger
+	enabled   map[string]bool // only the "on" values
+	startup   map[string]bool // the explicit values registered at startup
+	overrides map[string]bool // persisted admin overrides
+	// unknownOverrideFlags are stub flags created from persisted overrides for names
+	// not in the registry; their warnings must not be cleared by updateLocked.
+	unknownOverrideFlags map[string]struct{}
+	warnings             map[string]string // potential warnings about the flag
+	log                  log.Logger
 }
 
 type ToggleState struct {
-	Flag         FeatureFlag
-	Enabled      bool
-	Default      bool
-	HasOverride  bool
-	Override     bool
-	Source       string
-	Writeable    bool
-	Warning      string
+	Flag        FeatureFlag
+	Enabled     bool
+	Default     bool
+	HasOverride bool
+	Override    bool
+	Source      string
+	Writeable   bool
+	Warning     string
 }
 
 // This will merge the flags with the current configuration
@@ -107,7 +110,9 @@ func (fm *FeatureManager) updateLocked() {
 			featureToggleInfo.WithLabelValues(flag.Name).Set(0)
 			continue
 		}
-		delete(fm.warnings, flag.Name)
+		if _, unknown := fm.unknownOverrideFlags[flag.Name]; !unknown {
+			delete(fm.warnings, flag.Name)
+		}
 
 		// Update the registry
 		track := 0.0
@@ -177,6 +182,7 @@ func (fm *FeatureManager) LoadOverrides(overrides map[string]bool) {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
 
+	fm.unknownOverrideFlags = make(map[string]struct{}, len(overrides))
 	fm.overrides = make(map[string]bool, len(overrides))
 	for key, value := range overrides {
 		fm.overrides[key] = value
@@ -185,6 +191,7 @@ func (fm *FeatureManager) LoadOverrides(overrides map[string]bool) {
 				Name:  key,
 				Stage: FeatureStageUnknown,
 			}
+			fm.unknownOverrideFlags[key] = struct{}{}
 			fm.warnings[key] = "unknown flag override"
 		}
 	}
@@ -196,23 +203,44 @@ func (fm *FeatureManager) SetOverride(flag string, enabled bool) error {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
 
+	next, err := fm.computeOverridesAfterSetLocked(flag, enabled)
+	if err != nil {
+		return err
+	}
+	fm.overrides = next
+	fm.updateLocked()
+	return nil
+}
+
+// computeOverridesAfterSetLocked returns the overrides map after applying SetOverride(flag, enabled).
+// The caller must hold fm.mu (read or write lock).
+func (fm *FeatureManager) computeOverridesAfterSetLocked(flag string, enabled bool) (map[string]bool, error) {
 	ff, ok := fm.flags[flag]
 	if !ok {
-		return fmt.Errorf("unknown feature flag %q", flag)
+		return nil, fmt.Errorf("unknown feature flag %q", flag)
 	}
 
 	if ok, reason := fm.meetsRequirements(ff); !ok {
-		return fmt.Errorf("%s", reason)
+		return nil, fmt.Errorf("%s", reason)
 	}
 
+	next := make(map[string]bool, len(fm.overrides)+1)
+	for k, v := range fm.overrides {
+		next[k] = v
+	}
 	if enabled == fm.baseEnabledLocked(flag) {
-		delete(fm.overrides, flag)
+		delete(next, flag)
 	} else {
-		fm.overrides[flag] = enabled
+		next[flag] = enabled
 	}
+	return next, nil
+}
 
-	fm.updateLocked()
-	return nil
+// OverridesAfterSet returns the overrides map that would result from SetOverride(flag, enabled) without mutating state.
+func (fm *FeatureManager) OverridesAfterSet(flag string, enabled bool) (map[string]bool, error) {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
+	return fm.computeOverridesAfterSetLocked(flag, enabled)
 }
 
 func (fm *FeatureManager) GetOverrides() map[string]bool {
@@ -296,5 +324,12 @@ func WithManager(spec ...any) *FeatureManager {
 		}
 	}
 
-	return &FeatureManager{enabled: enabled, flags: features, startup: enabled, overrides: map[string]bool{}, warnings: map[string]string{}}
+	return &FeatureManager{
+		enabled:              enabled,
+		flags:                features,
+		startup:              enabled,
+		overrides:            map[string]bool{},
+		unknownOverrideFlags: map[string]struct{}{},
+		warnings:             map[string]string{},
+	}
 }

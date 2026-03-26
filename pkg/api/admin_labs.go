@@ -1,13 +1,14 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/grafana/grafana/pkg/api/response"
 	common "github.com/grafana/grafana/pkg/apimachinery/apis/common/v0alpha1"
-	featuretoggleapi "github.com/grafana/grafana/pkg/services/featuremgmt/feature_toggle_api"
 	contextmodel "github.com/grafana/grafana/pkg/services/contexthandler/model"
+	featuretoggleapi "github.com/grafana/grafana/pkg/services/featuremgmt/feature_toggle_api"
 	"github.com/grafana/grafana/pkg/web"
 )
 
@@ -77,12 +78,22 @@ func (hs *HTTPServer) AdminUpdateLabsFeatureToggle(c *contextmodel.ReqContext) r
 		return response.Error(http.StatusBadRequest, "feature flag is required", nil)
 	}
 
-	if err := hs.featureManager.SetOverride(flag, cmd.Enabled); err != nil {
+	nextOverrides, err := hs.featureManager.OverridesAfterSet(flag, cmd.Enabled)
+	if err != nil {
 		return response.Error(http.StatusBadRequest, fmt.Sprintf("failed to update feature flag %q", flag), err)
 	}
 
-	if err := hs.saveLabsFeatureOverrides(c.Req.Context()); err != nil {
+	payload, err := json.Marshal(nextOverrides)
+	if err != nil {
 		return response.Error(http.StatusInternalServerError, "failed to persist feature flag override", err)
+	}
+
+	if err := hs.labsOverrideStore().Set(c.Req.Context(), "overrides", string(payload)); err != nil {
+		return response.Error(http.StatusInternalServerError, "failed to persist feature flag override", err)
+	}
+
+	if err := hs.featureManager.SetOverride(flag, cmd.Enabled); err != nil {
+		return response.Error(http.StatusBadRequest, fmt.Sprintf("failed to update feature flag %q", flag), err)
 	}
 
 	return hs.AdminGetLabsFeatureToggles(c)
