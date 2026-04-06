@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sync"
 
 	"github.com/grafana/grafana/pkg/infra/log"
 )
@@ -13,6 +14,8 @@ var (
 )
 
 type FeatureManager struct {
+	mu sync.RWMutex
+
 	isDevMod bool
 
 	flags    map[string]*FeatureFlag
@@ -22,8 +25,17 @@ type FeatureManager struct {
 	log      log.Logger
 }
 
+// RuntimeToggleUpdate is a single feature toggle change for batch updates.
+type RuntimeToggleUpdate struct {
+	Name    string
+	Enabled bool
+}
+
 // This will merge the flags with the current configuration
 func (fm *FeatureManager) registerFlags(flags ...FeatureFlag) {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+
 	for _, add := range flags {
 		if add.Name == "" {
 			continue // skip it with warning?
@@ -59,7 +71,7 @@ func (fm *FeatureManager) registerFlags(flags ...FeatureFlag) {
 	}
 
 	// This will evaluate all flags
-	fm.update()
+	fm.recomputeEnabled()
 }
 
 // meetsRequirements checks if grafana is able to run the given feature due to dev mode or licensing requirements
@@ -71,8 +83,8 @@ func (fm *FeatureManager) meetsRequirements(ff *FeatureFlag) (bool, string) {
 	return true, ""
 }
 
-// Update
-func (fm *FeatureManager) update() {
+// recomputeEnabled rebuilds fm.enabled from flags and startup. Caller must hold fm.mu.
+func (fm *FeatureManager) recomputeEnabled() {
 	enabled := make(map[string]bool)
 	for _, flag := range fm.flags {
 		// if grafana cannot run the feature, omit metrics around it
@@ -99,16 +111,22 @@ func (fm *FeatureManager) update() {
 
 // IsEnabled checks if a feature is enabled
 func (fm *FeatureManager) IsEnabled(ctx context.Context, flag string) bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
 	return fm.enabled[flag]
 }
 
 // IsEnabledGlobally checks if a feature is for all tenants
 func (fm *FeatureManager) IsEnabledGlobally(flag string) bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
 	return fm.enabled[flag]
 }
 
 // GetEnabled returns a map containing only the features that are enabled
 func (fm *FeatureManager) GetEnabled(ctx context.Context) map[string]bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
 	enabled := make(map[string]bool, len(fm.enabled))
 	for key, val := range fm.enabled {
 		if val {
@@ -120,6 +138,8 @@ func (fm *FeatureManager) GetEnabled(ctx context.Context) map[string]bool {
 
 // GetFlags returns all flag definitions
 func (fm *FeatureManager) GetFlags() []FeatureFlag {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
 	v := make([]FeatureFlag, 0, len(fm.flags))
 	for _, value := range fm.flags {
 		v = append(v, *value)
@@ -127,9 +147,10 @@ func (fm *FeatureManager) GetFlags() []FeatureFlag {
 	return v
 }
 
-// SetEnabled sets the enabled state of a feature flag at runtime.
-// Returns false if the flag doesn't exist or can't be toggled.
-func (fm *FeatureManager) SetEnabled(name string, enabled bool) bool {
+// CanRuntimeToggle reports whether SetEnabled would accept a change for this flag name.
+func (fm *FeatureManager) CanRuntimeToggle(name string) bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
 	flag, ok := fm.flags[name]
 	if !ok {
 		return false
@@ -138,11 +159,50 @@ func (fm *FeatureManager) SetEnabled(name string, enabled bool) bool {
 		return false
 	}
 	ok, _ = fm.meetsRequirements(flag)
+	return ok
+}
+
+// validateRuntimeToggle returns whether the flag exists and may be toggled at runtime (caller must hold fm.mu).
+func (fm *FeatureManager) validateRuntimeToggle(name string) bool {
+	flag, ok := fm.flags[name]
 	if !ok {
 		return false
 	}
+	if flag.RequiresRestart {
+		return false
+	}
+	ok, _ = fm.meetsRequirements(flag)
+	return ok
+}
+
+// ApplyRuntimeToggleUpdates applies multiple toggle updates atomically: either all succeed or none are applied.
+// On failure it returns the name of the first invalid toggle and false.
+func (fm *FeatureManager) ApplyRuntimeToggleUpdates(updates []RuntimeToggleUpdate) (failedName string, ok bool) {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+
+	for _, u := range updates {
+		if !fm.validateRuntimeToggle(u.Name) {
+			return u.Name, false
+		}
+	}
+	for _, u := range updates {
+		fm.startup[u.Name] = u.Enabled
+	}
+	fm.recomputeEnabled()
+	return "", true
+}
+
+// SetEnabled sets the enabled state of a feature flag at runtime.
+// Returns false if the flag doesn't exist or can't be toggled.
+func (fm *FeatureManager) SetEnabled(name string, enabled bool) bool {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+	if !fm.validateRuntimeToggle(name) {
+		return false
+	}
 	fm.startup[name] = enabled
-	fm.update()
+	fm.recomputeEnabled()
 	return true
 }
 

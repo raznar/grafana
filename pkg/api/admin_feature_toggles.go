@@ -37,7 +37,7 @@ func (hs *HTTPServer) AdminGetFeatureToggles(c *contextmodel.ReqContext) respons
 			Description:     f.Description,
 			Stage:           f.Stage.String(),
 			Enabled:         enabled[f.Name],
-			ReadOnly:        f.RequiresRestart,
+			ReadOnly:        !mgr.CanRuntimeToggle(f.Name),
 			RequiresDevMode: f.RequiresDevMode,
 			RequiresRestart: f.RequiresRestart,
 			FrontendOnly:    f.FrontendOnly,
@@ -72,10 +72,12 @@ func (hs *HTTPServer) AdminUpdateFeatureToggles(c *contextmodel.ReqContext) resp
 		return response.Error(http.StatusBadRequest, "Invalid request body", err)
 	}
 
+	updates := make([]featuremgmt.RuntimeToggleUpdate, 0, len(req.Toggles))
 	for _, toggle := range req.Toggles {
-		if !mgr.SetEnabled(toggle.Name, toggle.Enabled) {
-			return response.Error(http.StatusBadRequest, "Cannot update toggle: "+toggle.Name, nil)
-		}
+		updates = append(updates, featuremgmt.RuntimeToggleUpdate{Name: toggle.Name, Enabled: toggle.Enabled})
+	}
+	if failedName, ok := mgr.ApplyRuntimeToggleUpdates(updates); !ok {
+		return response.Error(http.StatusBadRequest, "Cannot update toggle: "+failedName, nil)
 	}
 
 	return response.Success("Feature toggles updated")

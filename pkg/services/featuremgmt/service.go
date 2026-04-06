@@ -38,6 +38,7 @@ func ProvideManagerService(cfg *setting.Cfg) (*FeatureManager, error) {
 	if err != nil {
 		return mgmt, err
 	}
+	mgmt.mu.Lock()
 	for key, val := range flags {
 		_, ok := mgmt.flags[key]
 		if !ok {
@@ -52,10 +53,14 @@ func ProvideManagerService(cfg *setting.Cfg) (*FeatureManager, error) {
 	}
 
 	// update the values
-	mgmt.update()
+	mgmt.recomputeEnabled()
+	mgmt.mu.Unlock()
 
 	// Log the enabled feature toggles at startup
-	enabled := sort.StringSlice(maps.Keys(mgmt.enabled))
+	mgmt.mu.RLock()
+	enabledKeys := maps.Keys(mgmt.enabled)
+	mgmt.mu.RUnlock()
+	enabled := sort.StringSlice(enabledKeys)
 	logctx := make([]any, len(enabled)*2)
 	for i, k := range enabled {
 		logctx[(i * 2)] = k
