@@ -71,7 +71,7 @@ function FeatureTogglesPage() {
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null);
   const [toggleStates, setToggleStates] = useState<Record<string, boolean>>({});
 
-  const { loading, value: toggles } = useAsync(async () => {
+  const { loading, error: loadError, value: toggles } = useAsync(async () => {
     const result = await getBackendSrv().get<FeatureToggleDTO[]>('/api/admin/feature-toggles');
     const states: Record<string, boolean> = {};
     for (const t of result) {
@@ -166,20 +166,28 @@ function FeatureTogglesPage() {
                 </option>
               ))}
             </select>
-            <span className={styles.countLabel}>
-              {enabledCount} / {totalCount} enabled
-              {filteredToggles.length < totalCount && ` (showing ${filteredToggles.length})`}
-            </span>
+            {toggles != null && (
+              <span className={styles.countLabel}>
+                {enabledCount} / {totalCount} enabled
+                {filteredToggles.length < totalCount && ` (showing ${filteredToggles.length})`}
+              </span>
+            )}
           </Stack>
         </div>
 
         {loading && <Spinner />}
 
-        {!loading && filteredToggles.length === 0 && (
+        {!loading && loadError && (
+          <Alert severity="error" title="Failed to load feature toggles">
+            {loadError instanceof Error ? loadError.message : String(loadError)}
+          </Alert>
+        )}
+
+        {!loading && !loadError && filteredToggles.length === 0 && (
           <div className={styles.emptyState}>No feature toggles match your search.</div>
         )}
 
-        {!loading && filteredToggles.length > 0 && (
+        {!loading && !loadError && filteredToggles.length > 0 && (
           <table className={styles.table}>
             <thead>
               <tr>

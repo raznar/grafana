@@ -147,7 +147,7 @@ func (fm *FeatureManager) GetFlags() []FeatureFlag {
 	return v
 }
 
-// CanRuntimeToggle reports whether SetEnabled would accept a change for this flag name.
+// CanRuntimeToggle reports whether ApplyRuntimeToggleUpdates would accept a change for this flag name.
 func (fm *FeatureManager) CanRuntimeToggle(name string) bool {
 	fm.mu.RLock()
 	defer fm.mu.RUnlock()
@@ -191,19 +191,6 @@ func (fm *FeatureManager) ApplyRuntimeToggleUpdates(updates []RuntimeToggleUpdat
 	}
 	fm.recomputeEnabled()
 	return "", true
-}
-
-// SetEnabled sets the enabled state of a feature flag at runtime.
-// Returns false if the flag doesn't exist or can't be toggled.
-func (fm *FeatureManager) SetEnabled(name string, enabled bool) bool {
-	fm.mu.Lock()
-	defer fm.mu.Unlock()
-	if !fm.validateRuntimeToggle(name) {
-		return false
-	}
-	fm.startup[name] = enabled
-	fm.recomputeEnabled()
-	return true
 }
 
 // ############# Test Functions #############
