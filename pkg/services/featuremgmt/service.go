@@ -38,23 +38,25 @@ func ProvideManagerService(cfg *setting.Cfg) (*FeatureManager, error) {
 	if err != nil {
 		return mgmt, err
 	}
-	mgmt.mu.Lock()
-	for key, val := range flags {
-		_, ok := mgmt.flags[key]
-		if !ok {
-			mgmt.flags[key] = &FeatureFlag{
-				Name:  key,
-				Stage: FeatureStageUnknown,
+	func() {
+		mgmt.mu.Lock()
+		defer mgmt.mu.Unlock()
+		for key, val := range flags {
+			_, ok := mgmt.flags[key]
+			if !ok {
+				mgmt.flags[key] = &FeatureFlag{
+					Name:  key,
+					Stage: FeatureStageUnknown,
+				}
+				mgmt.warnings[key] = "unknown flag in config"
 			}
-			mgmt.warnings[key] = "unknown flag in config"
+
+			mgmt.startup[key] = val.Variants[val.DefaultVariant] == true
 		}
 
-		mgmt.startup[key] = val.Variants[val.DefaultVariant] == true
-	}
-
-	// update the values
-	mgmt.recomputeEnabled()
-	mgmt.mu.Unlock()
+		// update the values
+		mgmt.recomputeEnabled()
+	}()
 
 	// Log the enabled feature toggles at startup
 	mgmt.mu.RLock()

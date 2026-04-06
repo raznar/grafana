@@ -151,15 +151,7 @@ func (fm *FeatureManager) GetFlags() []FeatureFlag {
 func (fm *FeatureManager) CanRuntimeToggle(name string) bool {
 	fm.mu.RLock()
 	defer fm.mu.RUnlock()
-	flag, ok := fm.flags[name]
-	if !ok {
-		return false
-	}
-	if flag.RequiresRestart {
-		return false
-	}
-	ok, _ = fm.meetsRequirements(flag)
-	return ok
+	return fm.validateRuntimeToggle(name)
 }
 
 // validateRuntimeToggle returns whether the flag exists and may be toggled at runtime (caller must hold fm.mu).
