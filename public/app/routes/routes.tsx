@@ -377,6 +377,12 @@ export function getAppRoutes(): RouteDescriptor[] {
         () => import(/* webpackChunkName: "ServerStats" */ 'app/features/admin/ServerStats')
       ),
     },
+    {
+      path: '/admin/feature-toggles',
+      component: SafeDynamicImport(
+        () => import(/* webpackChunkName: "FeatureTogglesPage" */ 'app/features/admin/FeatureTogglesPage')
+      ),
+    },
     config.cloudMigrationEnabled && {
       path: '/admin/migrate-to-cloud',
       roles: () => contextSrv.evaluatePermission([AccessControlAction.MigrationAssistantMigrate]),

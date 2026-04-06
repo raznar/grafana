@@ -127,6 +127,25 @@ func (fm *FeatureManager) GetFlags() []FeatureFlag {
 	return v
 }
 
+// SetEnabled sets the enabled state of a feature flag at runtime.
+// Returns false if the flag doesn't exist or can't be toggled.
+func (fm *FeatureManager) SetEnabled(name string, enabled bool) bool {
+	flag, ok := fm.flags[name]
+	if !ok {
+		return false
+	}
+	if flag.RequiresRestart {
+		return false
+	}
+	ok, _ = fm.meetsRequirements(flag)
+	if !ok {
+		return false
+	}
+	fm.startup[name] = enabled
+	fm.update()
+	return true
+}
+
 // ############# Test Functions #############
 
 func WithFeatures(spec ...any) FeatureToggles {
