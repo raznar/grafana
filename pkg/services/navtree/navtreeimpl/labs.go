@@ -1,13 +1,14 @@
 package navtreeimpl
 
 import (
-	"github.com/grafana/grafana/pkg/apimachinery/identity"
+	ac "github.com/grafana/grafana/pkg/services/accesscontrol"
 	contextmodel "github.com/grafana/grafana/pkg/services/contexthandler/model"
 	"github.com/grafana/grafana/pkg/services/navtree"
 )
 
 func (s *ServiceImpl) getLabsNode(c *contextmodel.ReqContext) *navtree.NavLink {
-	if !c.HasRole(identity.RoleAdmin) {
+	hasAccess := ac.HasAccess(s.accessControl, c)
+	if !hasAccess(ac.EvalPermission(ac.ActionFeatureManagementRead)) {
 		return nil
 	}
 
@@ -16,6 +17,6 @@ func (s *ServiceImpl) getLabsNode(c *contextmodel.ReqContext) *navtree.NavLink {
 		SubTitle: "Experimental features and feature flags",
 		Id:       navtree.NavIDCfgLabs,
 		Url:      s.cfg.AppSubURL + "/admin/labs",
-		Icon:     "flask",
+		Icon:     "rocket",
 	}
 }
