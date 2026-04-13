@@ -54,6 +54,7 @@ const (
 	NavIDCfgGeneral           = "cfg/general"
 	NavIDCfgPlugins           = "cfg/plugins"
 	NavIDCfgAccess            = "cfg/access"
+	NavIDCfgLabs              = "cfg/labs"
 	NavIDBookmarks            = "bookmarks"
 )
 
