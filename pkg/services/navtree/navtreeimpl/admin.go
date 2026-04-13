@@ -187,6 +187,10 @@ func (s *ServiceImpl) getAdminNode(c *contextmodel.ReqContext) (*navtree.NavLink
 		})
 	}
 
+	if labsNode := s.getLabsNode(c); labsNode != nil {
+		configNodes = append(configNodes, labsNode)
+	}
+
 	configNode := &navtree.NavLink{
 		Id:         navtree.NavIDCfg,
 		Text:       "Administration",
