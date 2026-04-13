@@ -5,7 +5,7 @@ import { useAsync } from 'react-use';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Trans, t } from '@grafana/i18n';
 import { getBackendSrv } from '@grafana/runtime';
-import { Alert, Badge, FilterInput, Stack, useStyles2 } from '@grafana/ui';
+import { Alert, Badge, FilterInput, Select, Stack, useStyles2 } from '@grafana/ui';
 import { Page } from 'app/core/components/Page/Page';
 
 interface FeatureToggle {
@@ -70,13 +70,16 @@ function LabsPage() {
     });
   }, [featureToggles, searchQuery, stageFilter]);
 
-  const stages = useMemo(() => {
+  const stageOptions = useMemo(() => {
     if (!featureToggles) {
-      return [];
+      return [{ label: t('admin.labs.filter.all-stages', 'All stages'), value: 'all' }];
     }
 
-    const uniqueStages = [...new Set(featureToggles.map((tog) => tog.stage))];
-    return uniqueStages.sort();
+    const uniqueStages = [...new Set(featureToggles.map((tog) => tog.stage))].sort();
+    return [
+      { label: t('admin.labs.filter.all-stages', 'All stages'), value: 'all' },
+      ...uniqueStages.map((stage) => ({ label: getStageLabel(stage), value: stage })),
+    ];
   }, [featureToggles]);
 
   const enabledCount = useMemo(() => {
@@ -102,18 +105,12 @@ function LabsPage() {
               onChange={setSearchQuery}
               width={40}
             />
-            <select
-              className={styles.stageSelect}
+            <Select
+              options={stageOptions}
               value={stageFilter}
-              onChange={(e) => setStageFilter(e.target.value)}
-            >
-              <option value="all">{t('admin.labs.filter.all-stages', 'All stages')}</option>
-              {stages.map((stage) => (
-                <option key={stage} value={stage}>
-                  {getStageLabel(stage)}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => setStageFilter(v.value ?? 'all')}
+              width={20}
+            />
           </Stack>
           <div className={styles.stats}>
             {filteredToggles.length > 0 && (
@@ -236,13 +233,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: theme.spacing(2),
-  }),
-  stageSelect: css({
-    padding: theme.spacing(1),
-    borderRadius: theme.shape.radius.default,
-    border: `1px solid ${theme.colors.border.medium}`,
-    background: theme.colors.background.primary,
-    color: theme.colors.text.primary,
   }),
   stats: css({
     color: theme.colors.text.secondary,
