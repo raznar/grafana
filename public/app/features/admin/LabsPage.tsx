@@ -1,5 +1,6 @@
 import { css } from '@emotion/css';
 import { useMemo, useState } from 'react';
+import Skeleton from 'react-loading-skeleton';
 import { useAsync } from 'react-use';
 
 import { GrafanaTheme2 } from '@grafana/data';
@@ -208,17 +209,17 @@ function FeatureTogglesTableSkeleton() {
         {Array.from({ length: 10 }).map((_, i) => (
           <tr key={i}>
             <td>
-              <div className="skeleton" style={{ width: '200px', height: '16px', marginBottom: '4px' }} />
-              <div className="skeleton" style={{ width: '300px', height: '14px' }} />
+              <Skeleton width={200} height={16} style={{ marginBottom: 4 }} />
+              <Skeleton width={300} height={14} />
             </td>
             <td>
-              <div className="skeleton" style={{ width: '80px', height: '20px' }} />
+              <Skeleton width={80} height={20} />
             </td>
             <td>
-              <div className="skeleton" style={{ width: '60px', height: '20px' }} />
+              <Skeleton width={60} height={20} />
             </td>
             <td>
-              <div className="skeleton" style={{ width: '100px', height: '20px' }} />
+              <Skeleton width={100} height={20} />
             </td>
           </tr>
         ))}
