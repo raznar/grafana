@@ -46,11 +46,11 @@ function persistLocalStorageOverrides(overrides: Record<string, boolean>) {
 
 /** Default on/off from the flag definition (`true` / `false` expressions only). */
 function defaultEnabledFromExpression(expression: string): boolean | undefined {
-  const t = expression.trim();
-  if (t === 'true') {
+  const trimmed = expression.trim();
+  if (trimmed === 'true') {
     return true;
   }
-  if (t === 'false') {
+  if (trimmed === 'false') {
     return false;
   }
   return undefined;
