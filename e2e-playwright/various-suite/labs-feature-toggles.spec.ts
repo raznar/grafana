@@ -1,4 +1,18 @@
-import { test, expect } from '@grafana/plugin-e2e';
+import type { Page } from '@playwright/test';
+
+import { expect, test } from '@grafana/plugin-e2e';
+
+/** Navigate to Labs and wait until feature metadata has loaded (rows can be asserted). */
+async function gotoLabsWhenReady(page: Page) {
+  const metadata = page.waitForResponse(
+    (r) =>
+      r.url().includes('/api/feature-toggles/metadata') &&
+      r.request().method() === 'GET' &&
+      r.status() === 200
+  );
+  await page.goto('/labs');
+  await metadata;
+}
 
 test.describe(
   'Labs feature flags',
@@ -11,17 +25,20 @@ test.describe(
       await page.evaluate(() => {
         localStorage.setItem('grafana.navigation.docked', 'true');
       });
+      // Apply docked nav before each test (same pattern as bookmarks.spec.ts).
+      await page.goto('/');
+      await page.reload();
     });
 
     test('Labs page loads with feature toggles', async ({ page }) => {
-      await page.goto('/labs');
+      await gotoLabsWhenReady(page);
       await expect(page.getByTestId('labs-page')).toBeVisible();
       await expect(page.getByRole('heading', { name: /^Labs$/i })).toBeVisible();
       await expect(page.getByRole('switch').first()).toBeVisible();
     });
 
     test('search filters feature flags', async ({ page }) => {
-      await page.goto('/labs');
+      await gotoLabsWhenReady(page);
       await expect(page.getByTestId('labs-flag-row-panelTitleSearch')).toBeVisible();
       await page.getByTestId('labs-search-input').fill('panelTitleSearch');
       await expect(page.getByTestId('labs-flag-row-panelTitleSearch')).toBeVisible();
@@ -29,9 +46,10 @@ test.describe(
     });
 
     test('toggling a flag updates localStorage and reloads', async ({ page }) => {
-      await page.goto('/labs');
+      await gotoLabsWhenReady(page);
       await page.evaluate(() => localStorage.removeItem('grafana.featureToggles'));
       await page.reload();
+      await gotoLabsWhenReady(page);
       await expect(page.getByTestId('labs-flag-row-panelTitleSearch')).toBeVisible();
 
       const row = page.getByTestId('labs-flag-row-panelTitleSearch');
@@ -50,11 +68,12 @@ test.describe(
     });
 
     test('reset all clears localStorage overrides', async ({ page }) => {
-      await page.goto('/labs');
+      await gotoLabsWhenReady(page);
       await page.evaluate(() => {
         localStorage.setItem('grafana.featureToggles', 'panelTitleSearch=true');
       });
       await page.reload();
+      await gotoLabsWhenReady(page);
       await page.getByTestId('labs-reset-all').click();
       await page.waitForLoadState('load');
       const ls = await page.evaluate(() => localStorage.getItem('grafana.featureToggles'));
