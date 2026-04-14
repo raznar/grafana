@@ -31,11 +31,16 @@ const (
 	WeightAsserts
 	WeightDataConnections
 	WeightApps
-	WeightLabs
-	WeightPlugin
-	WeightConfig
-	WeightProfile
-	WeightHelp
+)
+
+// WeightLabs sits between WeightApps (-2100) and the default nav items below. Labs is not part of the
+// iota block so inserting it does not shift WeightPlugin, WeightConfig, WeightProfile, or WeightHelp.
+const (
+	WeightLabs    = -2050
+	WeightPlugin  = -2000
+	WeightConfig  = -1900
+	WeightProfile = -1800
+	WeightHelp    = -1700
 )
 
 const (

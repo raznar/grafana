@@ -44,6 +44,18 @@ function persistLocalStorageOverrides(overrides: Record<string, boolean>) {
   store.set(FEATURE_TOGGLES_LS_KEY, serialized);
 }
 
+/** Default on/off from the flag definition (`true` / `false` expressions only). */
+function defaultEnabledFromExpression(expression: string): boolean | undefined {
+  const t = expression.trim();
+  if (t === 'true') {
+    return true;
+  }
+  if (t === 'false') {
+    return false;
+  }
+  return undefined;
+}
+
 function stageBadgeColor(stage: string): 'blue' | 'green' | 'orange' | 'purple' | 'red' {
   switch (stage) {
     case 'experimental':
@@ -189,7 +201,11 @@ export default function LabsPage() {
           <Stack direction="column" gap={1}>
             {filtered.map((it) => {
               const enabled = readToggleEnabled(it.name);
-              const modified = localStorageOverrides[it.name] !== undefined;
+              const override = localStorageOverrides[it.name];
+              const defaultEnabled = defaultEnabledFromExpression(it.expression);
+              const modified =
+                override !== undefined &&
+                (defaultEnabled === undefined || override !== defaultEnabled);
               return (
                 <div key={it.name} className={styles.row} data-testid={`labs-flag-row-${it.name}`}>
                   <div className={styles.rowMain}>
