@@ -44,17 +44,6 @@ function persistLocalStorageOverrides(overrides: Record<string, boolean>) {
   store.set(FEATURE_TOGGLES_LS_KEY, serialized);
 }
 
-function defaultBoolFromExpression(expression: string): boolean {
-  const e = expression.trim();
-  if (e === 'true') {
-    return true;
-  }
-  if (e === 'false') {
-    return false;
-  }
-  return false;
-}
-
 function stageBadgeColor(stage: string): 'blue' | 'green' | 'orange' | 'purple' | 'red' {
   switch (stage) {
     case 'experimental':
@@ -127,18 +116,15 @@ export default function LabsPage() {
     });
   }, [items, query, stageFilter]);
 
+  const localStorageOverrides = useMemo(() => parseLocalStorageOverrides(), []);
+
   const readToggleEnabled = (name: string): boolean => {
     return Boolean(Reflect.get(config.featureToggles, name));
   };
 
   const onToggle = (name: string, enabled: boolean) => {
     const overrides = parseLocalStorageOverrides();
-    const def = defaultBoolFromExpression(items.find((i) => i.name === name)?.expression ?? '');
-    if (enabled === def) {
-      delete overrides[name];
-    } else {
-      overrides[name] = enabled;
-    }
+    overrides[name] = enabled;
     persistLocalStorageOverrides(overrides);
     window.location.reload();
   };
@@ -202,9 +188,8 @@ export default function LabsPage() {
 
           <Stack direction="column" gap={1}>
             {filtered.map((it) => {
-              const def = defaultBoolFromExpression(it.expression);
               const enabled = readToggleEnabled(it.name);
-              const modified = enabled !== def;
+              const modified = localStorageOverrides[it.name] !== undefined;
               return (
                 <div key={it.name} className={styles.row} data-testid={`labs-flag-row-${it.name}`}>
                   <div className={styles.rowMain}>
