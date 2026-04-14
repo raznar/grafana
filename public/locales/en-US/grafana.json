@@ -9634,6 +9634,20 @@
     }
   },
   "label-dropdown-info": "Can't find your label? Enter it manually",
+  "labs-page": {
+    "badge-frontend": "Frontend only",
+    "badge-modified": "Modified in this browser",
+    "intro": "Toggle feature flags for this browser. Overrides are stored in local storage and apply after reload. Some flags only take effect when changed in Grafana configuration or require a server restart.",
+    "load-error": "Could not load feature flags.",
+    "nav": "Labs",
+    "reset-all": "Reset browser overrides",
+    "search-label": "Search",
+    "search-placeholder": "Filter by name or description",
+    "stage-all": "All stages",
+    "stage-filter-aria": "Filter by stage",
+    "stage-label": "Stage",
+    "title": "Labs"
+  },
   "layers": {
     "layer-drag-drop-list": {
       "draggable-aria-label": "Drag and drop to reorder",
@@ -10787,6 +10801,10 @@
     },
     "kubernetes": {
       "title": "Kubernetes"
+    },
+    "labs": {
+      "subtitle": "Try experimental feature flags in this browser",
+      "title": "Labs"
     },
     "library-panels": {
       "subtitle": "Reusable panels that can be added to multiple dashboards",

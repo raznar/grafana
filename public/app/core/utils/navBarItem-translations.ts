@@ -23,6 +23,8 @@ export function getNavTitle(navId: string | undefined) {
       return t('nav.create-import.title', 'Import dashboard');
     case 'alert':
       return t('nav.create-alert.title', 'New alert rule');
+    case 'labs':
+      return t('nav.labs.title', 'Labs');
     case 'bookmarks':
       return t('nav.bookmarks.title', 'Bookmarks');
     case 'bookmarks-empty':
@@ -311,6 +313,8 @@ export function getNavSubTitle(navId: string | undefined) {
       );
     case 'plugin-page-grafana-ml-app':
       return t('nav.machine-learning.subtitle', 'Explore AI and machine learning features');
+    case 'labs':
+      return t('nav.labs.subtitle', 'Try experimental feature flags in this browser');
     default:
       return undefined;
   }

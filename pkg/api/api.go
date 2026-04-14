@@ -90,6 +90,7 @@ func (hs *HTTPServer) registerRoutes() {
 
 	// authed views
 	r.Get("/", reqSignedIn, hs.Index)
+	r.Get("/labs", reqSignedIn, hs.Index)
 	r.Get("/profile/", reqSignedInNoAnonymous, hs.Index)
 	r.Get("/profile/password", reqSignedInNoAnonymous, hs.Index)
 	r.Get("/.well-known/change-password", redirectToChangePassword)
@@ -457,6 +458,7 @@ func (hs *HTTPServer) registerRoutes() {
 
 		apiRoute.Get("/frontend/settings/", hs.GetFrontendSettings)
 		apiRoute.Get("/frontend/assets", hs.GetFrontendAssets)
+		apiRoute.Get("/feature-toggles/metadata", hs.GetFeatureTogglesMetadata)
 
 		// Folders
 		hs.registerFolderAPI(apiRoute, authorize)
