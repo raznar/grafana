@@ -770,6 +770,11 @@ export interface FeatureToggles {
   */
   timeRangeProvider?: boolean;
   /**
+  * Enables Windows Vista–inspired glass styling on the home dashboard
+  * @default false
+  */
+  vistaHomeTheme?: boolean;
+  /**
   * Enables time range panning functionality
   * @default false
   */

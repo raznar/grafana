@@ -3,26 +3,30 @@ import { css, Global } from '@emotion/react';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom-v5-compat';
 
+import { config } from '@grafana/runtime';
+
 const VISTA_BODY_CLASS = 'vista-home-theme';
 
 /**
  * Applies a Windows Vista–inspired glass and Aurora look to the Grafana home dashboard (`/`).
  * Scoped to the home route only via `body.${VISTA_BODY_CLASS}`.
+ * Requires the `vistaHomeTheme` feature toggle and light theme (styles are light-only).
  */
 export function VistaHomeTheme() {
   const location = useLocation();
   const isHomePath = location.pathname === '/';
+  const enabled = Boolean(config.featureToggles.vistaHomeTheme) && !config.theme2.isDark;
 
   useEffect(() => {
-    if (isHomePath) {
+    if (enabled && isHomePath) {
       document.body.classList.add(VISTA_BODY_CLASS);
     } else {
       document.body.classList.remove(VISTA_BODY_CLASS);
     }
     return () => document.body.classList.remove(VISTA_BODY_CLASS);
-  }, [isHomePath]);
+  }, [enabled, isHomePath]);
 
-  if (!isHomePath) {
+  if (!enabled || !isHomePath) {
     return null;
   }
 

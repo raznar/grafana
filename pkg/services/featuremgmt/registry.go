@@ -1199,6 +1199,14 @@ var (
 			Expression:  "false",
 		},
 		{
+			Name:         "vistaHomeTheme",
+			Description:  "Enables Windows Vista–inspired glass styling on the home dashboard",
+			Stage:        FeatureStageExperimental,
+			Owner:        grafanaFrontendPlatformSquad,
+			FrontendOnly: true,
+			Expression:   "false",
+		},
+		{
 			Name:         "timeRangePan",
 			Description:  "Enables time range panning functionality",
 			Stage:        FeatureStageExperimental,
