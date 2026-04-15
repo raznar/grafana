@@ -4697,6 +4697,20 @@
     },
     {
       "metadata": {
+        "name": "vistaHomeTheme",
+        "resourceVersion": "1776266727953",
+        "creationTimestamp": "2026-04-15T15:25:27Z"
+      },
+      "spec": {
+        "description": "Enables Windows Vista–inspired glass styling on the home dashboard",
+        "stage": "experimental",
+        "codeowner": "@grafana/grafana-frontend-platform",
+        "frontend": true,
+        "expression": "false"
+      }
+    },
+    {
+      "metadata": {
         "name": "vizActionsAuth",
         "resourceVersion": "1768498862515",
         "creationTimestamp": "2025-07-31T22:56:50Z",

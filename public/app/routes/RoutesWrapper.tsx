@@ -10,6 +10,7 @@ import { AppChromeExtensionPoint } from '../core/components/AppChrome/AppChromeE
 import { AppNotificationList } from '../core/components/AppNotifications/AppNotificationList';
 import { ModalsContextProvider } from '../core/context/ModalsContextProvider';
 import { QueriesDrawerContextProvider } from '../features/explore/QueriesDrawer/QueriesDrawerContext';
+import { VistaHomeTheme } from '../features/home/VistaHomeTheme';
 
 function ExtraProviders(props: { children: ReactNode; providers: Array<ComponentType<{ children: ReactNode }>> }) {
   return props.providers.reduce((tree, Provider): ReactNode => {
@@ -28,6 +29,7 @@ export function RouterWrapper(props: RouterWrapperProps) {
     <Router history={locationService.getHistory()}>
       <LocationServiceProvider service={locationService}>
         <CompatRouter>
+          <VistaHomeTheme />
           <QueriesDrawerContextProvider>
             <ExtraProviders providers={props.providers}>
               <ModalsContextProvider>
