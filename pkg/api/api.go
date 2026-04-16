@@ -91,6 +91,7 @@ func (hs *HTTPServer) registerRoutes() {
 	// authed views
 	r.Get("/", reqSignedIn, hs.Index)
 	r.Get("/profile/", reqSignedInNoAnonymous, hs.Index)
+	r.Get("/profile/labs", reqSignedInNoAnonymous, hs.Index)
 	r.Get("/profile/password", reqSignedInNoAnonymous, hs.Index)
 	r.Get("/.well-known/change-password", redirectToChangePassword)
 	r.Get("/profile/switch-org/:id", reqSignedInNoAnonymous, hs.ChangeActiveOrgAndRedirectToHome)
@@ -297,6 +298,8 @@ func (hs *HTTPServer) registerRoutes() {
 			userRoute.Get("/preferences", routing.Wrap(hs.GetUserPreferences))
 			userRoute.Put("/preferences", routing.Wrap(hs.UpdateUserPreferences))
 			userRoute.Patch("/preferences", routing.Wrap(hs.PatchUserPreferences))
+
+			userRoute.Get("/labs/feature-flags", routing.Wrap(hs.GetLabsFeatureFlags))
 
 			userRoute.Get("/auth-tokens", requestmeta.SetOwner(requestmeta.TeamAuth), routing.Wrap(hs.GetUserAuthTokens))
 			userRoute.Post("/revoke-auth-token", requestmeta.SetOwner(requestmeta.TeamAuth), routing.Wrap(hs.RevokeUserAuthToken))

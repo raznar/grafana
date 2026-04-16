@@ -247,6 +247,7 @@ export interface GrafanaConfig {
   queryHistoryEnabled: boolean;
   helpEnabled: boolean;
   profileEnabled: boolean;
+  labsEnabled: boolean;
   newsFeedEnabled: boolean;
   ldapEnabled: boolean;
   sigV4AuthEnabled: boolean;

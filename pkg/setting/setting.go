@@ -579,6 +579,9 @@ type Cfg struct {
 	// Profile UI
 	ProfileEnabled bool
 
+	// Labs UI (feature flag playground in the browser). Off by default; set [labs] enabled = true or GF_LABS_ENABLED.
+	LabsEnabled bool
+
 	// News Feed
 	NewsFeedEnabled bool
 
@@ -1340,6 +1343,9 @@ func (cfg *Cfg) parseINIFile(iniFile *ini.File) error {
 
 	profile := iniFile.Section("profile")
 	cfg.ProfileEnabled = profile.Key("enabled").MustBool(true)
+
+	labs := iniFile.Section("labs")
+	cfg.LabsEnabled = labs.Key("enabled").MustBool(false)
 
 	news := iniFile.Section("news")
 	cfg.NewsFeedEnabled = news.Key("news_feed_enabled").MustBool(true)
@@ -2204,4 +2210,16 @@ func (cfg *Cfg) DefaultOrgID() int64 {
 		return int64(cfg.AutoAssignOrgId)
 	}
 	return int64(1)
+}
+
+// LabsUIEnabled reports whether the Grafana Labs UI (browser feature toggle overrides) is available.
+// It is on in development by default, or when [labs] enabled / GF_LABS_ENABLED is set.
+func (cfg *Cfg) LabsUIEnabled() bool {
+	if cfg == nil {
+		return false
+	}
+	if cfg.LabsEnabled {
+		return true
+	}
+	return cfg.Env == Dev
 }
