@@ -115,6 +115,7 @@ export class GrafanaBootConfig {
   queryHistoryEnabled = false;
   helpEnabled = false;
   profileEnabled = false;
+  labsEnabled = false;
   newsFeedEnabled = true;
   ldapEnabled = false;
   jwtHeaderName = '';

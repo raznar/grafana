@@ -190,6 +190,7 @@ type FrontendSettingsDTO struct {
 	ExploreEnabled      bool `json:"exploreEnabled"`
 	HelpEnabled         bool `json:"helpEnabled"`
 	ProfileEnabled      bool `json:"profileEnabled"`
+	LabsEnabled         bool `json:"labsEnabled"`
 	NewsFeedEnabled     bool `json:"newsFeedEnabled"`
 	QueryHistoryEnabled bool `json:"queryHistoryEnabled"`
 

@@ -11,6 +11,16 @@ const profileRoutes: RouteDescriptor[] = [
       () => import(/* webpackChunkName: "UserProfileEditPage" */ 'app/features/profile/UserProfileEditPage')
     ),
   },
+  ...(config.labsEnabled
+    ? [
+        {
+          path: '/profile/labs',
+          component: SafeDynamicImport(
+            () => import(/* webpackChunkName: "LabsPage" */ 'app/features/profile/LabsPage')
+          ),
+        },
+      ]
+    : []),
   {
     path: '/profile/password',
     component: SafeDynamicImport(

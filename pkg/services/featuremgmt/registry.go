@@ -2269,6 +2269,13 @@ var (
 	}
 )
 
+// StandardFeatureFlags returns a copy of the canonical Grafana feature flag definitions from the registry.
+func StandardFeatureFlags() []FeatureFlag {
+	out := make([]FeatureFlag, len(standardFeatureFlags))
+	copy(out, standardFeatureFlags)
+	return out
+}
+
 //go:embed toggles_gen.json
 var f embed.FS
 
