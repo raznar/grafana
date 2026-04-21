@@ -3,7 +3,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { useAsync } from 'react-use';
 
 import { GrafanaTheme2 } from '@grafana/data';
-import { getBackendSrv } from '@grafana/runtime';
+import { Trans, t } from '@grafana/i18n';
+import { getBackendSrv, isFetchError } from '@grafana/runtime';
 import {
   Alert,
   Badge,
@@ -28,15 +29,17 @@ interface FeatureToggle {
   frontendOnly: boolean;
 }
 
-const stageOptions = [
-  { label: 'All stages', value: '' },
-  { label: 'Experimental', value: 'experimental' },
-  { label: 'Private Preview', value: 'privatePreview' },
-  { label: 'Preview', value: 'preview' },
-  { label: 'GA', value: 'GA' },
-  { label: 'Deprecated', value: 'deprecated' },
-  { label: 'Unknown', value: 'unknown' },
-];
+function getStageOptions() {
+  return [
+    { label: t('admin.feature-toggles.stage-option-all', 'All stages'), value: '' },
+    { label: t('admin.feature-toggles.stage-option-experimental', 'Experimental'), value: 'experimental' },
+    { label: t('admin.feature-toggles.stage-option-private-preview', 'Private Preview'), value: 'privatePreview' },
+    { label: t('admin.feature-toggles.stage-option-preview', 'Preview'), value: 'preview' },
+    { label: t('admin.feature-toggles.stage-option-ga', 'GA'), value: 'GA' },
+    { label: t('admin.feature-toggles.stage-option-deprecated', 'Deprecated'), value: 'deprecated' },
+    { label: t('admin.feature-toggles.stage-option-unknown', 'Unknown'), value: 'unknown' },
+  ];
+}
 
 function stageBadgeColor(stage: string): BadgeColor {
   switch (stage) {
@@ -56,6 +59,7 @@ function stageBadgeColor(stage: string): BadgeColor {
 
 function FeatureTogglesPage() {
   const styles = useStyles2(getStyles);
+  const stageOptions = useMemo(() => getStageOptions(), []);
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState('');
   const [pendingToggle, setPendingToggle] = useState<{ name: string; enabled: boolean } | null>(null);
@@ -107,12 +111,22 @@ function FeatureTogglesPage() {
       setLocalToggles((prev) => ({ ...prev, [pendingToggle.name]: pendingToggle.enabled }));
       setAlertMessage({
         severity: 'success',
-        text: `Feature toggle "${pendingToggle.name}" ${pendingToggle.enabled ? 'enabled' : 'disabled'} successfully.`,
+        text: pendingToggle.enabled
+          ? t('admin.feature-toggles.alert-success-enabled', 'Feature toggle "{{name}}" enabled successfully.', {
+              name: pendingToggle.name,
+            })
+          : t('admin.feature-toggles.alert-success-disabled', 'Feature toggle "{{name}}" disabled successfully.', {
+              name: pendingToggle.name,
+            }),
       });
     } catch (err) {
+      const detail = isFetchError(err) ? err.data?.message : err instanceof Error ? err.message : t('admin.feature-toggles.error-unknown', 'Unknown error');
       setAlertMessage({
         severity: 'error',
-        text: `Failed to update "${pendingToggle.name}": ${err instanceof Error ? err.message : 'Unknown error'}`,
+        text: t('admin.feature-toggles.alert-update-failed', 'Failed to update "{{name}}": {{detail}}', {
+          name: pendingToggle.name,
+          detail: detail ?? t('admin.feature-toggles.error-unknown', 'Unknown error'),
+        }),
       });
     } finally {
       setPendingToggle(null);
@@ -122,30 +136,39 @@ function FeatureTogglesPage() {
   return (
     <Page navId="feature-toggles">
       <Page.Contents>
-        <Alert severity="info" title="Runtime changes">
-          Changes made here take effect immediately but do not persist across server restarts. To make permanent changes,
-          update the <code>[feature_toggles]</code> section in your Grafana configuration file.
+        <Alert severity="info" title={t('admin.feature-toggles.about-title', 'About feature toggles')}>
+          <Trans i18nKey="admin.feature-toggles.about-body">
+            Changes made here take effect immediately but do not persist across server restarts. To make permanent changes,
+            update the <code>[feature_toggles]</code> section in your Grafana configuration file.
+          </Trans>
         </Alert>
 
         {alertMessage && (
-          <Alert severity={alertMessage.severity} title="" onRemove={() => setAlertMessage(null)}>
+          <Alert
+            severity={alertMessage.severity}
+            title={t('admin.feature-toggles.alert-status-title', 'Update status')}
+            onRemove={() => setAlertMessage(null)}
+          >
             {alertMessage.text}
           </Alert>
         )}
 
         {error && (
-          <Alert severity="error" title="Failed to load feature toggles">
+          <Alert severity="error" title={t('admin.feature-toggles.load-error-title', 'Failed to load feature toggles')}>
             {error.message}
           </Alert>
         )}
 
-        {loading && <LoadingPlaceholder text="Loading feature toggles..." />}
+        {loading && (
+          <LoadingPlaceholder text={t('admin.feature-toggles.loading', 'Loading feature toggles...')} />
+        )}
 
         {toggles && (
           <>
             <div className={styles.controls}>
               <FilterInput
-                placeholder="Search by name or description..."
+                placeholder={t('admin.feature-toggles.search-placeholder', 'Search by name or description...')}
+                aria-label={t('admin.feature-toggles.search-aria-label', 'Search feature toggles')}
                 value={search}
                 onChange={setSearch}
                 className={styles.searchInput}
@@ -155,21 +178,30 @@ function FeatureTogglesPage() {
                 value={stageFilter}
                 onChange={(v) => setStageFilter(v.value ?? '')}
                 className={styles.stageSelect}
-                prefix="Stage"
+                prefix={t('admin.feature-toggles.stage-prefix', 'Stage')}
+                aria-label={t('admin.feature-toggles.stage-filter-aria-label', 'Filter by stage')}
               />
-              <span className={styles.counter}>
-                {enabledCount} / {search || stageFilter ? `${totalFiltered} filtered` : totalAll} enabled
+              <span className={styles.counter} aria-live="polite">
+                {search || stageFilter
+                  ? t('admin.feature-toggles.enabled-count-filtered', '{{enabledCount}} / {{totalFiltered}} filtered enabled', {
+                      enabledCount,
+                      totalFiltered,
+                    })
+                  : t('admin.feature-toggles.enabled-count-all', '{{enabledCount}} / {{totalAll}} enabled', {
+                      enabledCount,
+                      totalAll,
+                    })}
               </span>
             </div>
 
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Description</th>
-                  <th>Stage</th>
-                  <th>Properties</th>
-                  <th>Enabled</th>
+                  <th scope="col">{t('admin.feature-toggles.column-name', 'Name')}</th>
+                  <th scope="col">{t('admin.feature-toggles.column-description', 'Description')}</th>
+                  <th scope="col">{t('admin.feature-toggles.column-stage', 'Stage')}</th>
+                  <th scope="col">{t('admin.feature-toggles.column-properties', 'Properties')}</th>
+                  <th scope="col">{t('admin.feature-toggles.column-enabled', 'Enabled')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -184,20 +216,51 @@ function FeatureTogglesPage() {
                     </td>
                     <td>
                       <div className={styles.badges}>
-                        {toggle.requiresRestart && <Badge text="Restart required" color="red" icon="exclamation-triangle" />}
-                        {toggle.requiresDevMode && <Badge text="Dev only" color="orange" />}
-                        {toggle.frontendOnly && <Badge text="Frontend" color="blue" />}
+                        {toggle.requiresRestart && (
+                          <Badge
+                            text={t('admin.feature-toggles.badge-restart-required', 'Restart required')}
+                            color="red"
+                            icon="exclamation-triangle"
+                          />
+                        )}
+                        {toggle.requiresDevMode && (
+                          <Badge text={t('admin.feature-toggles.badge-dev-only', 'Dev only')} color="orange" />
+                        )}
+                        {toggle.frontendOnly && (
+                          <Badge text={t('admin.feature-toggles.badge-frontend', 'Frontend')} color="blue" />
+                        )}
                       </div>
                     </td>
                     <td>
                       <InlineSwitch
+                        id={`feature-toggle-switch-${toggle.name}`}
                         value={toggle.enabled}
                         disabled={toggle.readOnly}
                         onChange={() =>
                           setPendingToggle({ name: toggle.name, enabled: !toggle.enabled })
                         }
                         showLabel={true}
-                        label={toggle.readOnly ? 'Read only' : toggle.enabled ? 'On' : 'Off'}
+                        label={
+                          toggle.readOnly
+                            ? t('admin.feature-toggles.switch-label-read-only', 'Read only')
+                            : toggle.enabled
+                              ? t('admin.feature-toggles.switch-label-on', 'On')
+                              : t('admin.feature-toggles.switch-label-off', 'Off')
+                        }
+                        transparent={true}
+                        aria-label={
+                          toggle.readOnly
+                            ? t('admin.feature-toggles.switch-aria-read-only', 'Toggle {{name}}, read only', {
+                                name: toggle.name,
+                              })
+                            : toggle.enabled
+                              ? t('admin.feature-toggles.switch-aria-enabled', 'Toggle {{name}}, currently enabled', {
+                                  name: toggle.name,
+                                })
+                              : t('admin.feature-toggles.switch-aria-disabled', 'Toggle {{name}}, currently disabled', {
+                                  name: toggle.name,
+                                })
+                        }
                       />
                     </td>
                   </tr>
@@ -205,7 +268,7 @@ function FeatureTogglesPage() {
                 {filtered.length === 0 && (
                   <tr>
                     <td colSpan={5} className={styles.emptyRow}>
-                      No feature toggles match the current filters.
+                      {t('admin.feature-toggles.empty-filters', 'No feature toggles match the current filters.')}
                     </td>
                   </tr>
                 )}
@@ -217,14 +280,33 @@ function FeatureTogglesPage() {
         {pendingToggle && (
           <ConfirmModal
             isOpen={true}
-            title="Confirm feature toggle change"
+            title={t('admin.feature-toggles.confirm-title', 'Confirm feature toggle change')}
             body={
               <p>
-                Are you sure you want to <strong>{pendingToggle.enabled ? 'enable' : 'disable'}</strong>{' '}
-                <code>{pendingToggle.name}</code>? This change takes effect immediately.
+                {pendingToggle.enabled ? (
+                  <Trans
+                    i18nKey="admin.feature-toggles.confirm-body-enable"
+                    values={{ toggleName: pendingToggle.name }}
+                  >
+                    Are you sure you want to <strong>enable</strong> <code>{{ toggleName }}</code>? This change takes
+                    effect immediately.
+                  </Trans>
+                ) : (
+                  <Trans
+                    i18nKey="admin.feature-toggles.confirm-body-disable"
+                    values={{ toggleName: pendingToggle.name }}
+                  >
+                    Are you sure you want to <strong>disable</strong> <code>{{ toggleName }}</code>? This change takes
+                    effect immediately.
+                  </Trans>
+                )}
               </p>
             }
-            confirmText={pendingToggle.enabled ? 'Enable' : 'Disable'}
+            confirmText={
+              pendingToggle.enabled
+                ? t('admin.feature-toggles.confirm-button-enable', 'Enable')
+                : t('admin.feature-toggles.confirm-button-disable', 'Disable')
+            }
             onConfirm={handleToggle}
             onDismiss={() => setPendingToggle(null)}
           />
