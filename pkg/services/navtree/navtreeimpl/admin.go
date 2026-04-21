@@ -52,6 +52,15 @@ func (s *ServiceImpl) getAdminNode(c *contextmodel.ReqContext) (*navtree.NavLink
 			Url:      s.cfg.AppSubURL + "/admin/migrate-to-cloud",
 		})
 	}
+	if c.IsGrafanaAdmin {
+		generalNodeLinks = append(generalNodeLinks, &navtree.NavLink{
+			Text:     "Feature toggles",
+			Id:       "feature-toggles",
+			SubTitle: "View and manage feature flags at runtime",
+			Icon:     "toggle-on",
+			Url:      s.cfg.AppSubURL + "/admin/feature-toggles",
+		})
+	}
 	//nolint:staticcheck // not yet migrated to OpenFeature
 	if c.HasRole(identity.RoleAdmin) &&
 		s.features.IsEnabledGlobally(featuremgmt.FlagProvisioning) {

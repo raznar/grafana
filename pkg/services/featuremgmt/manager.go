@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sync"
 
 	"github.com/grafana/grafana/pkg/infra/log"
 )
@@ -14,6 +15,7 @@ var (
 
 type FeatureManager struct {
 	isDevMod bool
+	mu       sync.RWMutex
 
 	flags    map[string]*FeatureFlag
 	enabled  map[string]bool   // only the "on" values
@@ -99,16 +101,22 @@ func (fm *FeatureManager) update() {
 
 // IsEnabled checks if a feature is enabled
 func (fm *FeatureManager) IsEnabled(ctx context.Context, flag string) bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
 	return fm.enabled[flag]
 }
 
 // IsEnabledGlobally checks if a feature is for all tenants
 func (fm *FeatureManager) IsEnabledGlobally(flag string) bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
 	return fm.enabled[flag]
 }
 
 // GetEnabled returns a map containing only the features that are enabled
 func (fm *FeatureManager) GetEnabled(ctx context.Context) map[string]bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
 	enabled := make(map[string]bool, len(fm.enabled))
 	for key, val := range fm.enabled {
 		if val {
@@ -120,11 +128,35 @@ func (fm *FeatureManager) GetEnabled(ctx context.Context) map[string]bool {
 
 // GetFlags returns all flag definitions
 func (fm *FeatureManager) GetFlags() []FeatureFlag {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
 	v := make([]FeatureFlag, 0, len(fm.flags))
 	for _, value := range fm.flags {
 		v = append(v, *value)
 	}
 	return v
+}
+
+// SetEnabled toggles a feature flag at runtime. Returns false if the flag
+// doesn't exist, requires a restart, or doesn't meet runtime requirements.
+func (fm *FeatureManager) SetEnabled(name string, enabled bool) bool {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+
+	flag, ok := fm.flags[name]
+	if !ok {
+		return false
+	}
+	if flag.RequiresRestart {
+		return false
+	}
+	if ok, _ := fm.meetsRequirements(flag); !ok {
+		return false
+	}
+
+	fm.startup[name] = enabled
+	fm.update()
+	return true
 }
 
 // ############# Test Functions #############
