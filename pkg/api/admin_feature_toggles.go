@@ -6,6 +6,7 @@ import (
 
 	"github.com/grafana/grafana/pkg/api/response"
 	contextmodel "github.com/grafana/grafana/pkg/services/contexthandler/model"
+	"github.com/grafana/grafana/pkg/services/featuremgmt"
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/web"
 )
@@ -79,11 +80,13 @@ func (hs *HTTPServer) AdminUpdateFeatureToggles(c *contextmodel.ReqContext) resp
 		return response.Error(http.StatusBadRequest, "No toggles provided", nil)
 	}
 
-	for _, t := range cmd.Toggles {
-		if ok := fm.SetEnabled(t.Name, t.Enabled); !ok {
-			return response.Error(http.StatusBadRequest,
-				"Cannot update toggle: "+t.Name+" (it may not exist, require a restart, or require dev mode)", nil)
-		}
+	updates := make([]featuremgmt.RuntimeToggleUpdate, len(cmd.Toggles))
+	for i, t := range cmd.Toggles {
+		updates[i] = featuremgmt.RuntimeToggleUpdate{Name: t.Name, Enabled: t.Enabled}
+	}
+	if ok, failed := fm.SetEnabledBatch(updates); !ok {
+		return response.Error(http.StatusBadRequest,
+			"Cannot update toggle: "+failed+" (it may not exist, require a restart, or require dev mode)", nil)
 	}
 
 	return response.JSON(http.StatusOK, map[string]string{"message": "Feature toggles updated"})

@@ -159,6 +159,39 @@ func (fm *FeatureManager) SetEnabled(name string, enabled bool) bool {
 	return true
 }
 
+// RuntimeToggleUpdate is one entry in a batch of runtime toggle changes.
+type RuntimeToggleUpdate struct {
+	Name    string
+	Enabled bool
+}
+
+// SetEnabledBatch validates every update, then applies them together under one lock.
+// If any update is invalid, it returns false and the name of the first failing toggle;
+// in that case the feature manager state is unchanged.
+func (fm *FeatureManager) SetEnabledBatch(updates []RuntimeToggleUpdate) (ok bool, failedName string) {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+
+	for _, u := range updates {
+		flag, exists := fm.flags[u.Name]
+		if !exists {
+			return false, u.Name
+		}
+		if flag.RequiresRestart {
+			return false, u.Name
+		}
+		if ok, _ := fm.meetsRequirements(flag); !ok {
+			return false, u.Name
+		}
+	}
+
+	for _, u := range updates {
+		fm.startup[u.Name] = u.Enabled
+	}
+	fm.update()
+	return true, ""
+}
+
 // ############# Test Functions #############
 
 func WithFeatures(spec ...any) FeatureToggles {

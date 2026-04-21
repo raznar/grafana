@@ -134,4 +134,34 @@ func TestFeatureManager(t *testing.T) {
 		require.True(t, ok)
 		require.True(t, ft.IsEnabledGlobally("devFlag"))
 	})
+
+	t.Run("SetEnabledBatch is all-or-nothing when one toggle is invalid", func(t *testing.T) {
+		ft := &FeatureManager{
+			flags:    map[string]*FeatureFlag{},
+			startup:  map[string]bool{},
+			enabled:  map[string]bool{},
+			warnings: map[string]string{},
+		}
+		ft.registerFlags(FeatureFlag{Name: "a"}, FeatureFlag{Name: "b"})
+		require.False(t, ft.IsEnabledGlobally("a"))
+		require.False(t, ft.IsEnabledGlobally("b"))
+
+		ok, failed := ft.SetEnabledBatch([]RuntimeToggleUpdate{
+			{Name: "a", Enabled: true},
+			{Name: "missing", Enabled: true},
+		})
+		require.False(t, ok)
+		require.Equal(t, "missing", failed)
+		require.False(t, ft.IsEnabledGlobally("a"))
+		require.False(t, ft.IsEnabledGlobally("b"))
+
+		ok, failed = ft.SetEnabledBatch([]RuntimeToggleUpdate{
+			{Name: "a", Enabled: true},
+			{Name: "b", Enabled: true},
+		})
+		require.True(t, ok)
+		require.Empty(t, failed)
+		require.True(t, ft.IsEnabledGlobally("a"))
+		require.True(t, ft.IsEnabledGlobally("b"))
+	})
 }
