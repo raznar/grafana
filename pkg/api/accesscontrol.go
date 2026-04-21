@@ -555,7 +555,7 @@ func (hs *HTTPServer) declareFixedRoles() error {
 				{Action: ac.ActionFeatureManagementRead},
 			},
 		},
-		Grants: []string{"Admin"},
+		Grants: []string{ac.RoleGrafanaAdmin},
 	}
 
 	featuremgmtWriterRole := ac.RoleRegistration{
@@ -568,7 +568,7 @@ func (hs *HTTPServer) declareFixedRoles() error {
 				{Action: ac.ActionFeatureManagementWrite},
 			},
 		},
-		Grants: []string{"Admin"},
+		Grants: []string{ac.RoleGrafanaAdmin},
 	}
 
 	snapshotsCreatorRole := ac.RoleRegistration{
