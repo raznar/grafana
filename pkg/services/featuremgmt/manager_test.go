@@ -66,7 +66,7 @@ func TestFeatureManager(t *testing.T) {
 		require.False(t, ft.IsEnabledGlobally("c"))
 	})
 
-	t.Run("SetEnabled toggles a flag at runtime", func(t *testing.T) {
+	t.Run("setEnabled toggles a flag at runtime", func(t *testing.T) {
 		ft := &FeatureManager{
 			flags:    map[string]*FeatureFlag{},
 			startup:  map[string]bool{},
@@ -76,27 +76,27 @@ func TestFeatureManager(t *testing.T) {
 		ft.registerFlags(FeatureFlag{Name: "myFlag"})
 		require.False(t, ft.IsEnabledGlobally("myFlag"))
 
-		ok := ft.SetEnabled("myFlag", true)
+		ok := ft.setEnabled("myFlag", true)
 		require.True(t, ok)
 		require.True(t, ft.IsEnabledGlobally("myFlag"))
 
-		ok = ft.SetEnabled("myFlag", false)
+		ok = ft.setEnabled("myFlag", false)
 		require.True(t, ok)
 		require.False(t, ft.IsEnabledGlobally("myFlag"))
 	})
 
-	t.Run("SetEnabled rejects non-existent flag", func(t *testing.T) {
+	t.Run("setEnabled rejects non-existent flag", func(t *testing.T) {
 		ft := &FeatureManager{
 			flags:    map[string]*FeatureFlag{},
 			startup:  map[string]bool{},
 			enabled:  map[string]bool{},
 			warnings: map[string]string{},
 		}
-		ok := ft.SetEnabled("doesNotExist", true)
+		ok := ft.setEnabled("doesNotExist", true)
 		require.False(t, ok)
 	})
 
-	t.Run("SetEnabled rejects RequiresRestart flag", func(t *testing.T) {
+	t.Run("setEnabled rejects RequiresRestart flag", func(t *testing.T) {
 		ft := &FeatureManager{
 			flags:    map[string]*FeatureFlag{},
 			startup:  map[string]bool{},
@@ -104,11 +104,11 @@ func TestFeatureManager(t *testing.T) {
 			warnings: map[string]string{},
 		}
 		ft.registerFlags(FeatureFlag{Name: "restartFlag", RequiresRestart: true})
-		ok := ft.SetEnabled("restartFlag", true)
+		ok := ft.setEnabled("restartFlag", true)
 		require.False(t, ok)
 	})
 
-	t.Run("SetEnabled rejects RequiresDevMode flag in prod", func(t *testing.T) {
+	t.Run("setEnabled rejects RequiresDevMode flag in prod", func(t *testing.T) {
 		ft := &FeatureManager{
 			isDevMod: false,
 			flags:    map[string]*FeatureFlag{},
@@ -117,11 +117,11 @@ func TestFeatureManager(t *testing.T) {
 			warnings: map[string]string{},
 		}
 		ft.registerFlags(FeatureFlag{Name: "devFlag", RequiresDevMode: true})
-		ok := ft.SetEnabled("devFlag", true)
+		ok := ft.setEnabled("devFlag", true)
 		require.False(t, ok)
 	})
 
-	t.Run("SetEnabled allows RequiresDevMode flag in dev", func(t *testing.T) {
+	t.Run("setEnabled allows RequiresDevMode flag in dev", func(t *testing.T) {
 		ft := &FeatureManager{
 			isDevMod: true,
 			flags:    map[string]*FeatureFlag{},
@@ -130,7 +130,7 @@ func TestFeatureManager(t *testing.T) {
 			warnings: map[string]string{},
 		}
 		ft.registerFlags(FeatureFlag{Name: "devFlag", RequiresDevMode: true})
-		ok := ft.SetEnabled("devFlag", true)
+		ok := ft.setEnabled("devFlag", true)
 		require.True(t, ok)
 		require.True(t, ft.IsEnabledGlobally("devFlag"))
 	})
