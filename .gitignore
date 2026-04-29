@@ -187,7 +187,6 @@ compilation-stats.json
 # e2e tests
 /e2e-playwright/extensions
 !/e2e-playwright/extensions/.keep
-/e2e/extensions-suite
 /test-results/
 /playwright-report/
 /blob-report/

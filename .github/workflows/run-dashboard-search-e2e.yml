@@ -129,8 +129,9 @@ jobs:
           INI_NAME: ${{ matrix.ini_file }}
           WORKSPACE: ${{ github.workspace }}
           NODE_OPTIONS: '-C @grafana-app/source'
+          GRAFANA_URL: http://localhost:3001
         run: |
           cp -rf "$INI_NAME" "$WORKSPACE"/scripts/grafana-server/custom.ini
-          GRAFANA_URL=http://localhost:3001 ./scripts/grafana-server/start-server > "$WORKSPACE"/scripts/grafana-server/server.log 2>&1 &
+          ./scripts/grafana-server/start-server > "$WORKSPACE"/scripts/grafana-server/server.log 2>&1 &
           ./scripts/grafana-server/wait-for-grafana
           yarn playwright test e2e-playwright/dashboards-search-suite/dashboards-search.spec.ts --grep @dashboards-search || echo "Test failed but marking as success since unified search is behind a feature flag and should not block PRs"
