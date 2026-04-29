@@ -107,7 +107,6 @@ runs:
             - './scripts/validate-npm-packages.sh'
             - '${{ inputs.self }}'
           e2e:
-            - 'e2e/**'
             - 'e2e-playwright/**'
             - '.github/actions/setup-enterprise/**'
             - '.github/actions/checkout/**'
@@ -120,7 +119,7 @@ runs:
             - '.github/actions/change-detection/**'
             - '**.cue'
             - 'conf/**'
-            - 'cypress.config.js'
+            - 'playwright.config.ts'
             - '${{ inputs.self }}'
           e2e_cloud_plugins:
             - 'pkg/tsdb/azuremonitor/**'

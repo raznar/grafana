@@ -185,21 +185,8 @@ manifest.json
 compilation-stats.json
 
 # e2e tests
-/packages/grafana-e2e/cypress/screenshots
-/packages/grafana-e2e/cypress/videos
-/packages/grafana-e2e/cypress/logs
-/e2e/server.log
-/e2e/**/screenshots
-!/e2e/**/screenshots/expected/*
-/e2e/**/videos/*
-/e2e/benchmarks/**/results/*
-/e2e/benchmarks/**/results
-/e2e/build_results.zip
-/e2e/extensions
-!/e2e/extensions/.keep
 /e2e-playwright/extensions
 !/e2e-playwright/extensions/.keep
-/e2e/extensions-suite
 /test-results/
 /playwright-report/
 /blob-report/

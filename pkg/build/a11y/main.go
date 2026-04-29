@@ -55,7 +55,7 @@ func NewApp() *cli.Command {
 			&cli.StringFlag{
 				Name:      "config",
 				Usage:     "Path to the pa11y config file to use",
-				Value:     "e2e/pa11yci.conf.js",
+				Value:     "scripts/ci/pa11yci.conf.js",
 				Validator: mustBeFile("config", true),
 				TakesFile: true,
 			},
