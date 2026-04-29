@@ -12,7 +12,7 @@ import (
 )
 
 // Verify uses the given package (.docker.tar.gz) and grafana source code (src) to run the e2e smoke tests.
-// the returned directory is the e2e artifacts created by cypress (screenshots and videos).
+// the returned directory is the e2e artifacts (for example Playwright traces, screenshots).
 func Verify(
 	ctx context.Context,
 	d *dagger.Client,

@@ -107,39 +107,6 @@ jobs:
           name: grafana-docker-tar-gz
           path: build-dir/grafana.docker.tar.gz
 
-  # TODO: we won't need this when we only have playwright
-  build-e2e-runner:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.changed == 'true'
-    name: Build E2E test runner
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      artifact: ${{ steps.artifact.outputs.artifact }}
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          persist-credentials: false
-      - name: Setup Go
-        uses: actions/setup-go@v6.0.0
-        with:
-          go-version-file: go.mod
-          cache: ${{ !github.event.pull_request.head.repo.fork }}
-      - name: Build E2E test runner
-        id: artifact
-        run: |
-          set -euo pipefail
-          # We want a static binary, so we need to set CGO_ENABLED=0
-          CGO_ENABLED=0 go build -o ./e2e-runner ./e2e/
-          echo "artifact=e2e-runner-${{github.run_number}}" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@v5
-        id: upload
-        with:
-          retention-days: 1
-          name: ${{ steps.artifact.outputs.artifact }}
-          path: e2e-runner
-
   push-docker-image:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false
     permissions:
@@ -191,66 +158,6 @@ jobs:
            -f 'output[title]=Docker image' \
            -f "output[summary]=${IMAGE}" \
            -f "output[text]=${IMAGE}"
-
-  run-e2e-tests:
-    needs:
-      - build-grafana
-      - build-e2e-runner
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - suite: various-suite (old arch)
-            path: e2e/old-arch/various-suite
-            flags: --flags="--env dashboardScene=false"
-          - suite: dashboards-suite (old arch)
-            path: e2e/old-arch/dashboards-suite
-            flags: --flags="--env dashboardScene=false"
-          - suite: smoke-tests-suite (old arch)
-            path: e2e/old-arch/smoke-tests-suite
-            flags: --flags="--env dashboardScene=false"
-          - suite: panels-suite (old arch)
-            path: e2e/old-arch/panels-suite
-            flags: --flags="--env dashboardScene=false"
-    name: ${{ matrix.suite }}
-    runs-on: ubuntu-latest-8-cores
-    permissions:
-      contents: read
-
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          persist-credentials: false
-      - uses: actions/download-artifact@v6
-        with:
-          name: grafana-tar-gz
-      - uses: actions/download-artifact@v6
-        with:
-          name: ${{ needs.build-e2e-runner.outputs.artifact }}
-      - name: chmod +x
-        run: chmod +x ./e2e-runner
-      - name: Run E2E tests
-        uses: dagger/dagger-for-github@d913e70051faf3b907d4dd96ef1161083c88c644
-        with:
-          version: 0.18.8
-          verb: run
-          args: go run ./pkg/build/e2e --package=grafana.tar.gz
-            --suite=${{ matrix.path }}
-            ${{ matrix.flags }}
-      - name: Set suite name
-        id: set-suite-name
-        if: success() || failure()
-        env:
-          SUITE: ${{ matrix.path }}
-        run: |
-          set -euo pipefail
-          echo "suite=$(echo "$SUITE" | sed 's/\//-/g')" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@v5
-        if: success() || failure()
-        with:
-          name: ${{ steps.set-suite-name.outputs.suite }}-${{ github.run_number }}
-          path: videos
-          retention-days: 1
 
   run-storybook-test:
     name: Verify Storybook (Playwright)
@@ -544,7 +451,6 @@ jobs:
   # Future work also allows us to start skipping some tests based on changed files.
   required-e2e-tests:
     needs:
-      - run-e2e-tests
       - build-grafana
       # a11y test is not listed on purpose: it is not an important E2E test.
       # It is also totally fine to fail right now.
