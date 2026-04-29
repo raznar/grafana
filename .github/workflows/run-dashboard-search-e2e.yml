@@ -115,6 +115,8 @@ jobs:
             e2e-playwright/test-plugins/
             devenv/
           key: ${{ runner.os }}-grafana-${{ hashFiles('go.mod', 'yarn.lock', 'Makefile', 'pkg/storage/**/*.go', 'public/app/features/search/**/*.ts', 'public/app/features/search/**/*.tsx') }}
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
       - name: Set the step name
         id: set_file_name
         env:
