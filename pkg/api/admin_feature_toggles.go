@@ -7,7 +7,6 @@ import (
 	"github.com/grafana/grafana/pkg/api/response"
 	contextmodel "github.com/grafana/grafana/pkg/services/contexthandler/model"
 	"github.com/grafana/grafana/pkg/services/featuremgmt"
-	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/web"
 )
 
@@ -42,10 +41,8 @@ func (hs *HTTPServer) AdminGetFeatureToggles(c *contextmodel.ReqContext) respons
 
 	dtos := make([]featureToggleDTO, 0, len(flags))
 	for _, f := range flags {
-		readOnly := f.RequiresRestart
-		if f.RequiresDevMode && hs.Cfg.Env == setting.Prod {
-			readOnly = true
-		}
+		ff := f
+		readOnly := !fm.CanToggleAtRuntime(&ff)
 		dtos = append(dtos, featureToggleDTO{
 			Name:            f.Name,
 			Description:     f.Description,

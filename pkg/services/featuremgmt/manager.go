@@ -73,6 +73,16 @@ func (fm *FeatureManager) meetsRequirements(ff *FeatureFlag) (bool, string) {
 	return true, ""
 }
 
+// CanToggleAtRuntime reports whether the flag's enabled state can be changed at runtime
+// without a restart. This matches the validation applied by SetEnabled and SetEnabledBatch.
+func (fm *FeatureManager) CanToggleAtRuntime(ff *FeatureFlag) bool {
+	if ff.RequiresRestart {
+		return false
+	}
+	ok, _ := fm.meetsRequirements(ff)
+	return ok
+}
+
 // Update
 func (fm *FeatureManager) update() {
 	enabled := make(map[string]bool)
@@ -147,10 +157,7 @@ func (fm *FeatureManager) SetEnabled(name string, enabled bool) bool {
 	if !ok {
 		return false
 	}
-	if flag.RequiresRestart {
-		return false
-	}
-	if ok, _ := fm.meetsRequirements(flag); !ok {
+	if !fm.CanToggleAtRuntime(flag) {
 		return false
 	}
 
@@ -177,10 +184,7 @@ func (fm *FeatureManager) SetEnabledBatch(updates []RuntimeToggleUpdate) (ok boo
 		if !exists {
 			return false, u.Name
 		}
-		if flag.RequiresRestart {
-			return false, u.Name
-		}
-		if reqOk, _ := fm.meetsRequirements(flag); !reqOk {
+		if !fm.CanToggleAtRuntime(flag) {
 			return false, u.Name
 		}
 	}
