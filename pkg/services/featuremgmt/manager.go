@@ -180,7 +180,7 @@ func (fm *FeatureManager) SetEnabledBatch(updates []RuntimeToggleUpdate) (ok boo
 		if flag.RequiresRestart {
 			return false, u.Name
 		}
-		if ok, _ := fm.meetsRequirements(flag); !ok {
+		if reqOk, _ := fm.meetsRequirements(flag); !reqOk {
 			return false, u.Name
 		}
 	}
