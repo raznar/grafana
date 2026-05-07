@@ -9,14 +9,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/grafana/pkg/services/accesscontrol"
 	"github.com/grafana/grafana/pkg/services/featuremgmt"
+	"github.com/grafana/grafana/pkg/services/user"
 	"github.com/grafana/grafana/pkg/setting"
 	"github.com/grafana/grafana/pkg/web/webtest"
 )
 
 func newTestFeatureManager() *featuremgmt.FeatureManager {
 	return featuremgmt.WithManager("featureA", true, "featureB", false)
+}
+
+func featureToggleAdminUser() *user.SignedInUser {
+	u := userWithPermissions(1, nil)
+	u.IsGrafanaAdmin = true
+	return u
 }
 
 func TestAPI_AdminGetFeatureToggles(t *testing.T) {
@@ -29,7 +35,7 @@ func TestAPI_AdminGetFeatureToggles(t *testing.T) {
 
 		res, err := server.Send(webtest.RequestWithSignedInUser(
 			server.NewGetRequest("/api/admin/feature-toggles"),
-			userWithPermissions(1, []accesscontrol.Permission{{Action: accesscontrol.ActionFeatureManagementRead}}),
+			featureToggleAdminUser(),
 		))
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, res.StatusCode)
@@ -70,7 +76,7 @@ func TestAPI_AdminUpdateFeatureToggles(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		res, err := server.Send(webtest.RequestWithSignedInUser(
 			req,
-			userWithPermissions(1, []accesscontrol.Permission{{Action: accesscontrol.ActionFeatureManagementWrite}}),
+			featureToggleAdminUser(),
 		))
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusOK, res.StatusCode)
@@ -89,7 +95,7 @@ func TestAPI_AdminUpdateFeatureToggles(t *testing.T) {
 		req.Header.Set("Content-Type", "application/json")
 		res, err := server.Send(webtest.RequestWithSignedInUser(
 			req,
-			userWithPermissions(1, []accesscontrol.Permission{{Action: accesscontrol.ActionFeatureManagementWrite}}),
+			featureToggleAdminUser(),
 		))
 		require.NoError(t, err)
 		assert.Equal(t, http.StatusBadRequest, res.StatusCode)

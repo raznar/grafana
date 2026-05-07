@@ -496,10 +496,6 @@ const (
 	// ActionAlertingProvisioningSetStatus Gives access to set provisioning status to alerting resources. Cannot be used alone. Only in conjunction with other permissions.
 	ActionAlertingProvisioningSetStatus = "alert.provisioning.provenance:write"
 
-	// Feature Management actions
-	ActionFeatureManagementRead  = "featuremgmt.read"
-	ActionFeatureManagementWrite = "featuremgmt.write"
-
 	// Library Panel actions
 	ActionLibraryPanelsCreate = "library.panels:create"
 	ActionLibraryPanelsRead   = "library.panels:read"

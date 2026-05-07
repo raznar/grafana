@@ -137,9 +137,9 @@ func (fm *FeatureManager) GetFlags() []FeatureFlag {
 	return v
 }
 
-// setEnabled toggles a feature flag at runtime. Returns false if the flag
+// SetEnabled toggles a feature flag at runtime. Returns false if the flag
 // doesn't exist, requires a restart, or doesn't meet runtime requirements.
-func (fm *FeatureManager) setEnabled(name string, enabled bool) bool {
+func (fm *FeatureManager) SetEnabled(name string, enabled bool) bool {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
 

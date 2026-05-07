@@ -7,6 +7,29 @@ import { OrgUser } from 'app/types/user';
 
 const perPage = 30;
 
+export interface FeatureToggle {
+  name: string;
+  description: string;
+  stage: string;
+  enabled: boolean;
+  readOnly: boolean;
+  requiresDevMode: boolean;
+  requiresRestart: boolean;
+  frontendOnly: boolean;
+}
+
+export interface UpdateFeatureTogglesCommand {
+  toggles: Array<{ name: string; enabled: boolean }>;
+}
+
+export const getFeatureToggles = () => {
+  return getBackendSrv().get<FeatureToggle[]>('/api/admin/feature-toggles');
+};
+
+export const updateFeatureToggles = (cmd: UpdateFeatureTogglesCommand) => {
+  return getBackendSrv().put('/api/admin/feature-toggles', cmd);
+};
+
 export const getOrg = async (orgId: UrlQueryValue) => {
   return await getBackendSrv().get(`/api/orgs/${orgId}`);
 };
