@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"sync"
 
 	"github.com/grafana/grafana/pkg/infra/log"
 )
@@ -16,12 +17,13 @@ var (
 type FeatureManager struct {
 	isDevMod bool
 
-	flags       map[string]*FeatureFlag
-	enabled     map[string]bool   // only the "on" values
-	startup     map[string]bool   // the explicit values registered at startup
-	dbOverrides map[string]bool   // persisted operator overrides (loaded after DB init)
-	warnings    map[string]string // potential warnings about the flag
-	log         log.Logger
+	flags         map[string]*FeatureFlag
+	enabled       map[string]bool // only the "on" values
+	startup       map[string]bool // the explicit values registered at startup
+	dbOverridesMu sync.RWMutex
+	dbOverrides   map[string]bool   // persisted operator overrides (loaded after DB init)
+	warnings      map[string]string // potential warnings about the flag
+	log           log.Logger
 }
 
 // This will merge the flags with the current configuration
@@ -100,8 +102,11 @@ func (fm *FeatureManager) predictEnabled(name string) bool {
 	if flag == nil {
 		return false
 	}
-	if fm.dbOverrides != nil {
-		if v, ok := fm.dbOverrides[name]; ok {
+	fm.dbOverridesMu.RLock()
+	db := fm.dbOverrides
+	fm.dbOverridesMu.RUnlock()
+	if db != nil {
+		if v, ok := db[name]; ok {
 			return v
 		}
 	}
@@ -165,6 +170,8 @@ func (fm *FeatureManager) ReloadDatabaseOverrides(ctx context.Context, reader Fe
 
 // ReplaceDBOverridesCache replaces the in-memory override map without re-evaluating runtime toggles (after API writes).
 func (fm *FeatureManager) ReplaceDBOverridesCache(m map[string]bool) {
+	fm.dbOverridesMu.Lock()
+	defer fm.dbOverridesMu.Unlock()
 	if m == nil {
 		fm.dbOverrides = make(map[string]bool)
 		return
@@ -193,6 +200,10 @@ func (fm *FeatureManager) GetAllFlagsWithStatus() []FlagStatus {
 	}
 	sort.Strings(names)
 
+	fm.dbOverridesMu.RLock()
+	dbOverrides := fm.dbOverrides
+	fm.dbOverridesMu.RUnlock()
+
 	out := make([]FlagStatus, 0, len(names))
 	for _, name := range names {
 		flag := fm.flags[name]
@@ -212,8 +223,8 @@ func (fm *FeatureManager) GetAllFlagsWithStatus() []FlagStatus {
 			InheritedAfterRestart: fm.predictEnabledWithoutDBOverride(name),
 			ReadOnly:              fm.hasIniEntry(name),
 		}
-		if fm.dbOverrides != nil {
-			if v, ok := fm.dbOverrides[name]; ok {
+		if dbOverrides != nil {
+			if v, ok := dbOverrides[name]; ok {
 				st.HasOverride = true
 				vv := v
 				st.Override = &vv
