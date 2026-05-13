@@ -24,6 +24,12 @@ type FeatureManager struct {
 	log      log.Logger
 }
 
+// RuntimeToggleUpdate is a desired runtime on/off state for a single feature flag.
+type RuntimeToggleUpdate struct {
+	Name    string
+	Enabled bool
+}
+
 // This will merge the flags with the current configuration
 func (fm *FeatureManager) registerFlags(flags ...FeatureFlag) {
 	fm.mu.Lock()
@@ -177,6 +183,35 @@ func (fm *FeatureManager) SetEnabled(name string, enabled bool) bool {
 	fm.startup[name] = enabled
 	fm.updateLocked()
 	return true
+}
+
+// ApplyRuntimeToggleUpdates validates and applies multiple runtime toggle updates under one lock.
+// If any update is invalid, it returns an error and leaves the manager unchanged.
+func (fm *FeatureManager) ApplyRuntimeToggleUpdates(updates []RuntimeToggleUpdate) error {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+
+	for _, u := range updates {
+		if _, ok := fm.flags[u.Name]; !ok {
+			return fmt.Errorf("Feature toggle %q does not exist", u.Name)
+		}
+		if !fm.canSetEnabledLocked(u.Name) {
+			return fmt.Errorf("Feature toggle %q cannot be changed at runtime", u.Name)
+		}
+	}
+
+	if len(updates) == 0 {
+		return nil
+	}
+
+	if fm.startup == nil {
+		fm.startup = make(map[string]bool)
+	}
+	for _, u := range updates {
+		fm.startup[u.Name] = u.Enabled
+	}
+	fm.updateLocked()
+	return nil
 }
 
 func (fm *FeatureManager) canSetEnabledLocked(name string) bool {

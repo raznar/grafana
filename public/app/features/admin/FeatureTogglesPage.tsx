@@ -75,6 +75,7 @@ function FeatureTogglesPage() {
       );
       setErrorMessage('');
     } catch (err) {
+      setSuccessMessage('');
       setErrorMessage(getErrorMessage(err));
     }
   }, []);

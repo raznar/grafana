@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"sort"
 
@@ -52,25 +51,12 @@ func (hs *HTTPServer) AdminUpdateFeatureToggles(c *contextmodel.ReqContext) resp
 		return response.Error(http.StatusBadRequest, "bad request data", err)
 	}
 
-	flagsByName := map[string]featuremgmt.FeatureFlag{}
-	for _, flag := range manager.GetFlags() {
-		flagsByName[flag.Name] = flag
+	updates := make([]featuremgmt.RuntimeToggleUpdate, len(cmd.Toggles))
+	for i, toggle := range cmd.Toggles {
+		updates[i] = featuremgmt.RuntimeToggleUpdate{Name: toggle.Name, Enabled: toggle.Enabled}
 	}
-
-	for _, toggle := range cmd.Toggles {
-		flag, ok := flagsByName[toggle.Name]
-		if !ok {
-			return response.Error(http.StatusBadRequest, fmt.Sprintf("Feature toggle %q does not exist", toggle.Name), nil)
-		}
-		if flag.RequiresRestart || !manager.CanSetEnabled(toggle.Name) {
-			return response.Error(http.StatusBadRequest, fmt.Sprintf("Feature toggle %q cannot be changed at runtime", toggle.Name), nil)
-		}
-	}
-
-	for _, toggle := range cmd.Toggles {
-		if !manager.SetEnabled(toggle.Name, toggle.Enabled) {
-			return response.Error(http.StatusBadRequest, fmt.Sprintf("Feature toggle %q cannot be changed at runtime", toggle.Name), nil)
-		}
+	if err := manager.ApplyRuntimeToggleUpdates(updates); err != nil {
+		return response.Error(http.StatusBadRequest, err.Error(), err)
 	}
 
 	return response.JSON(http.StatusOK, getAdminFeatureToggleDTOs(c.Req.Context(), manager))
