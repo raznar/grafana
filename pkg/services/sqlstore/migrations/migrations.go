@@ -119,6 +119,8 @@ func (oss *OSSMigrations) AddMigration(mg *Migrator) {
 
 	addKVStoreMySQLValueTypeLongTextMigration(mg)
 
+	addFeatureToggleOverrideMigration(mg)
+
 	ualert.AddRuleNotificationSettingsColumns(mg)
 
 	accesscontrol.AddAlertingScopeRemovalMigration(mg)
