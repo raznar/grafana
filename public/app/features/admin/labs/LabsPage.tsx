@@ -12,8 +12,7 @@ import {
   TextLink,
 } from '@grafana/ui';
 import { Page } from 'app/core/components/Page/Page';
-import { createErrorNotification, createSuccessNotification } from 'app/core/copy/appNotification';
-import { notifyApp } from 'app/core/reducers/appNotification';
+import { useAppNotification } from 'app/core/copy/appNotification';
 import { contextSrv } from 'app/core/services/context_srv';
 import { AccessControlAction } from 'app/types/accessControl';
 
@@ -48,6 +47,7 @@ function groupByStage(rows: FeatureToggleRowDTO[]): Record<FeatureToggleStage, F
 }
 
 export default function LabsPage() {
+  const notifyApp = useAppNotification();
   const { data, isLoading, error } = useGetFeatureMgmtQuery();
   const [updateFeatureMgmt, { isLoading: saving }] = useUpdateFeatureMgmtMutation();
   const [query, setQuery] = useState('');
@@ -110,17 +110,17 @@ export default function LabsPage() {
           updates: updates.length ? updates : undefined,
           removeOverrides: removeOverrides.length ? removeOverrides : undefined,
         }).unwrap();
-        notifyApp(createSuccessNotification(t('labs.save-success', 'Feature toggle overrides saved')));
+        notifyApp.success(t('labs.save-success', 'Feature toggle overrides saved'));
         const nextValues: LabsFormValues = {};
         for (const toggle of next.toggles) {
           nextValues[toggle.name] = toggle.afterRestart;
         }
         reset(nextValues);
       } catch (e) {
-        notifyApp(createErrorNotification(t('labs.save-error', 'Failed to save feature toggles')));
+        notifyApp.error(t('labs.save-error', 'Failed to save feature toggles'));
       }
     },
-    [data, reset, updateFeatureMgmt]
+    [data, notifyApp, reset, updateFeatureMgmt]
   );
 
   const resetAllOverrides = useCallback(async () => {
@@ -133,16 +133,16 @@ export default function LabsPage() {
     }
     try {
       const next = await updateFeatureMgmt({ removeOverrides }).unwrap();
-      notifyApp(createSuccessNotification(t('labs.reset-success', 'Overrides cleared')));
+      notifyApp.success(t('labs.reset-success', 'Overrides cleared'));
       const nextValues: LabsFormValues = {};
       for (const toggle of next.toggles) {
         nextValues[toggle.name] = toggle.afterRestart;
       }
       reset(nextValues);
     } catch (e) {
-      notifyApp(createErrorNotification(t('labs.reset-error', 'Failed to clear overrides')));
+      notifyApp.error(t('labs.reset-error', 'Failed to clear overrides'));
     }
-  }, [data, reset, updateFeatureMgmt]);
+  }, [data, notifyApp, reset, updateFeatureMgmt]);
 
   const hasRemovableOverrides = Boolean(
     data?.toggles?.some((t) => t.hasOverride && !t.readOnly && !t.unavailable)
