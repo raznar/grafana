@@ -118,6 +118,7 @@ func (hs *HTTPServer) registerRoutes() {
 	r.Get("/admin/orgs", authorizeInOrg(ac.UseGlobalOrg, ac.OrgsAccessEvaluator), hs.Index)
 	r.Get("/admin/orgs/edit/:id", authorizeInOrg(ac.UseGlobalOrg, ac.OrgsAccessEvaluator), hs.Index)
 	r.Get("/admin/stats", authorize(ac.EvalPermission(ac.ActionServerStatsRead)), hs.Index)
+	r.Get("/admin/labs", authorize(ac.EvalPermission(ac.ActionFeatureManagementRead)), hs.Index)
 	r.Get("/admin/provisioning", reqOrgAdmin, hs.Index)
 	r.Get("/admin/provisioning/*", reqOrgAdmin, hs.Index)
 
@@ -320,6 +321,11 @@ func (hs *HTTPServer) registerRoutes() {
 			orgRoute.Get("/", authorize(ac.EvalPermission(ac.ActionOrgsRead)), routing.Wrap(hs.GetCurrentOrg))
 			orgRoute.Get("/quotas", authorize(ac.EvalPermission(ac.ActionOrgsQuotasRead)), routing.Wrap(hs.GetCurrentOrgQuotas))
 		})
+
+		apiRoute.Group("/featuremgmt", func(featuremgmtRoute routing.RouteRegister) {
+			featuremgmtRoute.Get("/", authorize(ac.EvalPermission(ac.ActionFeatureManagementRead)), routing.Wrap(hs.GetFeatureMgmtAdmin))
+			featuremgmtRoute.Post("/", authorize(ac.EvalPermission(ac.ActionFeatureManagementWrite)), routing.Wrap(hs.UpdateFeatureMgmtAdmin))
+		}, reqSignedIn)
 
 		//nolint:staticcheck // not yet migrated to OpenFeature
 		if hs.Features.IsEnabledGlobally(featuremgmt.FlagStorage) {

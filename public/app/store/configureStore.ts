@@ -5,6 +5,7 @@ import { Middleware } from 'redux';
 import { allMiddleware as allApiClientMiddleware } from '@grafana/api-clients/rtkq';
 import { legacyAPI } from 'app/api/clients/legacy';
 import { scopeAPIv0alpha1 } from 'app/api/clients/scope/v0alpha1';
+import { featureMgmtApi } from 'app/features/admin/labs/featureMgmtApi';
 import { browseDashboardsAPI } from 'app/features/browse-dashboards/api/browseDashboardsAPI';
 import { publicDashboardApi } from 'app/features/dashboard/api/publicDashboardApi';
 import { StoreState } from 'app/types/store';
@@ -39,6 +40,7 @@ export function configureStore(initialState?: Partial<StoreState>) {
         alertingApi.middleware,
         // other Grafana core APIs
         publicDashboardApi.middleware,
+        featureMgmtApi.middleware,
         browseDashboardsAPI.middleware,
         legacyAPI.middleware,
         scopeAPIv0alpha1.middleware,

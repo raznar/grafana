@@ -7,6 +7,31 @@ import (
 )
 
 //go:generate mockery --name FeatureToggles --structname MockFeatureToggles --inpackage --filename feature_toggles_mock.go --with-expecter
+
+// FeatureToggleOverridesReader loads persisted toggle overrides from the database (optional).
+type FeatureToggleOverridesReader interface {
+	List(ctx context.Context) (map[string]bool, error)
+}
+
+// FlagStatus describes registry metadata and runtime state for one toggle (Labs admin API).
+type FlagStatus struct {
+	Name              string           `json:"name"`
+	Description       string           `json:"description"`
+	Stage             FeatureFlagStage `json:"stage"`
+	Owner             string           `json:"owner"`
+	Expression        string           `json:"expression"`
+	RequiresRestart   bool             `json:"requiresRestart"`
+	RequiresDevMode   bool             `json:"requiresDevMode"`
+	RuntimeEnabled        bool             `json:"runtimeEnabled"`
+	AfterRestart          bool             `json:"afterRestart"`
+	InheritedAfterRestart bool             `json:"inheritedAfterRestart"`
+	HasOverride           bool             `json:"hasOverride"`
+	Override          *bool            `json:"override,omitempty"`
+	ReadOnly          bool             `json:"readOnly"`
+	Unavailable       bool             `json:"unavailable"`
+	UnavailableReason string           `json:"unavailableReason,omitempty"`
+}
+
 type FeatureToggles interface {
 	// IsEnabled checks if a feature is enabled for a given context.
 	// The settings may be per user, tenant, or globally set in the cloud

@@ -5,6 +5,7 @@ import { allReducers as allApiClientReducers } from '@grafana/api-clients/rtkq';
 import { generatedAPI as legacyAPI } from '@grafana/api-clients/rtkq/legacy';
 import { scopeAPIv0alpha1 } from 'app/api/clients/scope/v0alpha1';
 import sharedReducers from 'app/core/reducers';
+import { featureMgmtApi } from 'app/features/admin/labs/featureMgmtApi';
 import ldapReducers from 'app/features/admin/state/reducers';
 import alertingReducers from 'app/features/alerting/state/reducers';
 import authConfigReducers from 'app/features/auth-config/state/reducers';
@@ -52,6 +53,7 @@ const rootReducers = {
   plugins: pluginsReducer,
   [alertingApi.reducerPath]: alertingApi.reducer,
   [publicDashboardApi.reducerPath]: publicDashboardApi.reducer,
+  [featureMgmtApi.reducerPath]: featureMgmtApi.reducer,
   [browseDashboardsAPI.reducerPath]: browseDashboardsAPI.reducer,
   [scopeAPIv0alpha1.reducerPath]: scopeAPIv0alpha1.reducer,
   ...allApiClientReducers,
