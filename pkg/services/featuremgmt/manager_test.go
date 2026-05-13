@@ -65,4 +65,47 @@ func TestFeatureManager(t *testing.T) {
 		require.False(t, ft.IsEnabledGlobally("b"))
 		require.False(t, ft.IsEnabledGlobally("c"))
 	})
+
+	t.Run("set enabled updates runtime state", func(t *testing.T) {
+		ft := FeatureManager{
+			flags:   map[string]*FeatureFlag{},
+			startup: map[string]bool{},
+		}
+		ft.registerFlags(FeatureFlag{
+			Name:       "defaultTrue",
+			Expression: "true",
+		}, FeatureFlag{
+			Name: "defaultFalse",
+		})
+
+		require.True(t, ft.IsEnabledGlobally("defaultTrue"))
+		require.False(t, ft.IsEnabledGlobally("defaultFalse"))
+
+		require.True(t, ft.SetEnabled("defaultTrue", false))
+		require.False(t, ft.IsEnabledGlobally("defaultTrue"))
+
+		require.True(t, ft.SetEnabled("defaultFalse", true))
+		require.True(t, ft.IsEnabledGlobally("defaultFalse"))
+		require.Equal(t, map[string]bool{"defaultFalse": true}, ft.GetEnabled(context.Background()))
+	})
+
+	t.Run("set enabled rejects flags that cannot change at runtime", func(t *testing.T) {
+		ft := FeatureManager{
+			flags:   map[string]*FeatureFlag{},
+			startup: map[string]bool{},
+		}
+		ft.registerFlags(FeatureFlag{
+			Name:            "restartRequired",
+			RequiresRestart: true,
+		}, FeatureFlag{
+			Name:            "devOnly",
+			RequiresDevMode: true,
+		})
+
+		require.False(t, ft.SetEnabled("unknown", true))
+		require.False(t, ft.SetEnabled("restartRequired", true))
+		require.False(t, ft.SetEnabled("devOnly", true))
+		require.False(t, ft.CanSetEnabled("restartRequired"))
+		require.False(t, ft.CanSetEnabled("devOnly"))
+	})
 }
