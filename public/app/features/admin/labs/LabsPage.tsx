@@ -204,7 +204,7 @@ export default function LabsPage() {
 
               {isLoading ? (
                 <>{t('labs.loading', 'Loading…')}</>
-              ) : filtered.length === 0 ? (
+              ) : error ? null : filtered.length === 0 ? (
                 <EmptyState variant="not-found" message={t('labs.empty', 'No feature toggles match your filter')} />
               ) : (
                 <Stack direction="column" gap={3}>

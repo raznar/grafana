@@ -75,3 +75,22 @@ func (s *sqlStore) delete(ctx context.Context, name string) error {
 		return err
 	})
 }
+
+func (s *sqlStore) applyBatch(ctx context.Context, removes []string, updates []BatchUpdate, userID int64) error {
+	if s == nil || s.sql == nil {
+		return errNilDB
+	}
+	return s.sql.InTransaction(ctx, func(txCtx context.Context) error {
+		for _, name := range removes {
+			if err := s.delete(txCtx, name); err != nil {
+				return err
+			}
+		}
+		for _, u := range updates {
+			if err := s.upsert(txCtx, u.Name, u.Enabled, userID); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}

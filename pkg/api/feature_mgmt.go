@@ -7,17 +7,18 @@ import (
 	"github.com/grafana/grafana/pkg/api/response"
 	contextmodel "github.com/grafana/grafana/pkg/services/contexthandler/model"
 	"github.com/grafana/grafana/pkg/services/featuremgmt"
+	"github.com/grafana/grafana/pkg/services/featuremgmt/overrides"
 	"github.com/grafana/grafana/pkg/web"
 )
 
 type featureMgmtGetDTO struct {
-	Toggles          []featuremgmt.FlagStatus `json:"toggles"`
-	RestartRequired  bool                     `json:"restartRequired"`
+	Toggles         []featuremgmt.FlagStatus `json:"toggles"`
+	RestartRequired bool                     `json:"restartRequired"`
 }
 
 type featureMgmtPostDTO struct {
-	Updates          []featureMgmtUpdate      `json:"updates"`
-	RemoveOverrides  []string                 `json:"removeOverrides"`
+	Updates         []featureMgmtUpdate `json:"updates"`
+	RemoveOverrides []string            `json:"removeOverrides"`
 }
 
 type featureMgmtUpdate struct {
@@ -74,6 +75,7 @@ func (hs *HTTPServer) UpdateFeatureMgmtAdmin(c *contextmodel.ReqContext) respons
 
 	userID := c.SignedInUser.UserID
 
+	var removes []string
 	for _, name := range body.RemoveOverrides {
 		if name == "" {
 			continue
@@ -84,11 +86,10 @@ func (hs *HTTPServer) UpdateFeatureMgmtAdmin(c *contextmodel.ReqContext) respons
 		if fm.HasIniEntry(name) {
 			return response.Error(http.StatusBadRequest, fmt.Sprintf("toggle %s is set in config and cannot be changed from Labs", name), nil)
 		}
-		if err := hs.featureToggleOverrides.Delete(c.Req.Context(), name); err != nil {
-			return response.Error(http.StatusInternalServerError, "failed to remove override", err)
-		}
+		removes = append(removes, name)
 	}
 
+	var batchUpdates []overrides.BatchUpdate
 	for _, u := range body.Updates {
 		if u.Name == "" {
 			return response.Error(http.StatusBadRequest, "update name is required", nil)
@@ -99,9 +100,11 @@ func (hs *HTTPServer) UpdateFeatureMgmtAdmin(c *contextmodel.ReqContext) respons
 		if fm.HasIniEntry(u.Name) {
 			return response.Error(http.StatusBadRequest, fmt.Sprintf("toggle %s is set in config and cannot be changed from Labs", u.Name), nil)
 		}
-		if err := hs.featureToggleOverrides.Upsert(c.Req.Context(), u.Name, u.Enabled, userID); err != nil {
-			return response.Error(http.StatusInternalServerError, "failed to save override", err)
-		}
+		batchUpdates = append(batchUpdates, overrides.BatchUpdate{Name: u.Name, Enabled: u.Enabled})
+	}
+
+	if err := hs.featureToggleOverrides.ApplyBatch(c.Req.Context(), removes, batchUpdates, userID); err != nil {
+		return response.Error(http.StatusInternalServerError, "failed to apply feature toggle overrides", err)
 	}
 
 	m, err := hs.featureToggleOverrides.List(c.Req.Context())
