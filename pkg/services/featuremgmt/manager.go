@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sync"
 
 	"github.com/grafana/grafana/pkg/infra/log"
 )
@@ -13,6 +14,7 @@ var (
 )
 
 type FeatureManager struct {
+	mu       sync.RWMutex
 	isDevMod bool
 
 	flags    map[string]*FeatureFlag
@@ -24,6 +26,9 @@ type FeatureManager struct {
 
 // This will merge the flags with the current configuration
 func (fm *FeatureManager) registerFlags(flags ...FeatureFlag) {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+
 	for _, add := range flags {
 		if add.Name == "" {
 			continue // skip it with warning?
@@ -59,7 +64,7 @@ func (fm *FeatureManager) registerFlags(flags ...FeatureFlag) {
 	}
 
 	// This will evaluate all flags
-	fm.update()
+	fm.updateLocked()
 }
 
 // meetsRequirements checks if grafana is able to run the given feature due to dev mode or licensing requirements
@@ -73,7 +78,17 @@ func (fm *FeatureManager) meetsRequirements(ff *FeatureFlag) (bool, string) {
 
 // Update
 func (fm *FeatureManager) update() {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+
+	fm.updateLocked()
+}
+
+func (fm *FeatureManager) updateLocked() {
 	enabled := make(map[string]bool)
+	if fm.warnings == nil {
+		fm.warnings = make(map[string]string)
+	}
 	for _, flag := range fm.flags {
 		// if grafana cannot run the feature, omit metrics around it
 		ok, reason := fm.meetsRequirements(flag)
@@ -99,16 +114,25 @@ func (fm *FeatureManager) update() {
 
 // IsEnabled checks if a feature is enabled
 func (fm *FeatureManager) IsEnabled(ctx context.Context, flag string) bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
+
 	return fm.enabled[flag]
 }
 
 // IsEnabledGlobally checks if a feature is for all tenants
 func (fm *FeatureManager) IsEnabledGlobally(flag string) bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
+
 	return fm.enabled[flag]
 }
 
 // GetEnabled returns a map containing only the features that are enabled
 func (fm *FeatureManager) GetEnabled(ctx context.Context) map[string]bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
+
 	enabled := make(map[string]bool, len(fm.enabled))
 	for key, val := range fm.enabled {
 		if val {
@@ -120,11 +144,50 @@ func (fm *FeatureManager) GetEnabled(ctx context.Context) map[string]bool {
 
 // GetFlags returns all flag definitions
 func (fm *FeatureManager) GetFlags() []FeatureFlag {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
+
 	v := make([]FeatureFlag, 0, len(fm.flags))
 	for _, value := range fm.flags {
 		v = append(v, *value)
 	}
 	return v
+}
+
+// CanSetEnabled reports whether a flag can be changed without restarting Grafana.
+func (fm *FeatureManager) CanSetEnabled(name string) bool {
+	fm.mu.RLock()
+	defer fm.mu.RUnlock()
+
+	return fm.canSetEnabledLocked(name)
+}
+
+// SetEnabled updates a feature flag's runtime state.
+func (fm *FeatureManager) SetEnabled(name string, enabled bool) bool {
+	fm.mu.Lock()
+	defer fm.mu.Unlock()
+
+	if !fm.canSetEnabledLocked(name) {
+		return false
+	}
+
+	if fm.startup == nil {
+		fm.startup = make(map[string]bool)
+	}
+	fm.startup[name] = enabled
+	fm.updateLocked()
+	setStaticProviderBooleanFlag(name, enabled)
+	return true
+}
+
+func (fm *FeatureManager) canSetEnabledLocked(name string) bool {
+	flag, ok := fm.flags[name]
+	if !ok || flag.RequiresRestart {
+		return false
+	}
+
+	ok, _ = fm.meetsRequirements(flag)
+	return ok
 }
 
 // ############# Test Functions #############
