@@ -84,6 +84,7 @@ func (p *inMemoryBulkProvider) SetBooleanFlag(name string, enabled bool) {
 	defer p.mu.Unlock()
 
 	p.flags[name] = setting.NewInMemoryFlag(name, enabled)
+	p.InMemoryProvider = memprovider.NewInMemoryProvider(p.flags)
 }
 
 func newStaticProvider(confFlags map[string]memprovider.InMemoryFlag, standardFlags []FeatureFlag) (openfeature.FeatureProvider, error) {
