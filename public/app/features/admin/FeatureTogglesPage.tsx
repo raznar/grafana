@@ -61,19 +61,28 @@ function FeatureTogglesPage() {
     }
   }, [error]);
 
-  const [{ loading: updating }, updateToggle] = useAsyncFn(async (toggle: FeatureToggle, enabled: boolean) => {
-    const updatedToggles = await getBackendSrv().put<FeatureToggle[]>('/api/admin/feature-toggles', {
-      toggles: [{ name: toggle.name, enabled }],
-    });
+  const [{ loading: updating, error: updateError }, updateToggle] = useAsyncFn(
+    async (toggle: FeatureToggle, enabled: boolean) => {
+      const updatedToggles = await getBackendSrv().put<FeatureToggle[]>('/api/admin/feature-toggles', {
+        toggles: [{ name: toggle.name, enabled }],
+      });
 
-    setToggles(updatedToggles);
-    setSuccessMessage(
-      enabled
-        ? t('admin.feature-toggles.enabled-success', 'Enabled {{name}}', { name: toggle.name })
-        : t('admin.feature-toggles.disabled-success', 'Disabled {{name}}', { name: toggle.name })
-    );
-    setErrorMessage('');
-  }, []);
+      setToggles(updatedToggles);
+      setSuccessMessage(
+        enabled
+          ? t('admin.feature-toggles.enabled-success', 'Enabled {{name}}', { name: toggle.name })
+          : t('admin.feature-toggles.disabled-success', 'Disabled {{name}}', { name: toggle.name })
+      );
+      setErrorMessage('');
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (updateError) {
+      setErrorMessage(getErrorMessage(updateError));
+    }
+  }, [updateError]);
 
   const normalizedQuery = query.trim().toLowerCase();
   const filteredToggles = useMemo(
@@ -215,9 +224,7 @@ function FeatureTogglesPage() {
             }
             onDismiss={() => setPendingToggle(undefined)}
             onConfirm={() => {
-              updateToggle(pendingToggle.toggle, pendingToggle.enabled).catch((err) =>
-                setErrorMessage(getErrorMessage(err))
-              );
+              updateToggle(pendingToggle.toggle, pendingToggle.enabled);
               setPendingToggle(undefined);
             }}
           />
