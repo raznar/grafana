@@ -81,6 +81,7 @@ function FeatureTogglesPage() {
   useEffect(() => {
     if (updateError) {
       setErrorMessage(getErrorMessage(updateError));
+      setSuccessMessage('');
     }
   }, [updateError]);
 
